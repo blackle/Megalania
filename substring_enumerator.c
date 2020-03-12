@@ -94,7 +94,7 @@ void substring_enumerator_callback(const SubstringEnumerator* em, size_t pos, Su
 	for (size_t i = 0; i < size; i++) {
 		size_t position = em->bigram_positions[offset + i];
 
-		// if (position + dictionary_length < pos) continue; //this is supposed to be dictionary size
+		// if (position + dictionary_length < pos) continue; //todo: this is supposed to be dictionary size
 		if (position >= pos) break;
 		callback(user_data, position, 2);
 		for (size_t j = 2; j < em->max_length && j + pos < em->data_size; j++) {
