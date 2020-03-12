@@ -10,6 +10,7 @@
 #include "substring_enumerator.h"
 #include "memory_mapper.h"
 
+#define MIN_SUBSTRING 2
 #define MAX_SUBSTRING 273
 #define GIGABYTE 1073741824
 
@@ -36,12 +37,12 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "avoiding allocating more than a gigabyte of memory\n");
 		return -1;
 	}
-	SubstringEnumerator* enumerator = substring_enumerator_new(file_data, file_size);
+	SubstringEnumerator* enumerator = substring_enumerator_new(file_data, file_size, MIN_SUBSTRING, MAX_SUBSTRING);
 
 	int count = 0;
 	for (size_t i = 0; i < file_size; i++) {
 		printf("%ld\t",i);
-		substring_enumerator_callback(enumerator, i, 2, MAX_SUBSTRING, substring_callback, &count);
+		substring_enumerator_callback(enumerator, i, substring_callback, &count);
 		printf("\n");
 	}
 	printf("\n%d\n", count);
