@@ -1,5 +1,5 @@
 #include "substring_enumerator.h"
-#include <sys/mman.h>
+#include "memory_mapper.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,12 +55,12 @@ SubstringEnumerator* substring_enumerator_new(const unsigned char* data, size_t 
 	enumerator->data_size = data_size;
 
 	//todo: put the mmap stuff in a helper function
-	void* bigram_positions = mmap(0, sizeof(size_t) * data_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
-	if (bigram_positions == MAP_FAILED) {
+	unsigned char* bigram_positions;
+	if (map_anonymous(sizeof(size_t) * data_size, &bigram_positions)) {
 		free(enumerator);
 		return NULL;
 	}
-	enumerator->bigram_positions = bigram_positions;
+	enumerator->bigram_positions = (size_t*)bigram_positions;
 
 	memoize_bigram_positions(enumerator);
 

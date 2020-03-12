@@ -8,50 +8,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "substring_enumerator.h"
-
-//todo: you can close fd and mmap is still valid
-typedef struct {
-	int fd;
-	size_t size;
-	const unsigned char* data;
-} MmapReference;
-
-int map_file(char* filename, MmapReference* ref) {
-	int fd = open(filename, O_RDONLY);
-	if (fd < 0) {
-		fprintf(stderr, "could not open %s\n", filename);
-		return -1;
-	}
-	struct stat buf;
-	if (fstat(fd, &buf) < 0) {
-		fprintf(stderr, "could not stat %s\n", filename);
-		return -1;
-	}
-	void* map = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (map == MAP_FAILED) {
-		fprintf(stderr, "could not mmap %s\n", filename);
-		return -1;
-	}
-	ref->fd = fd;
-	ref->size = buf.st_size;
-	ref->data = (unsigned char*) map;
-	return 0;
-}
-
-int unmap_file(MmapReference* ref) {
-	if (munmap((void*) ref->data, ref->size) < 0) {
-		fprintf(stderr, "could not munmap fd %d\n", ref->fd);
-		return -1;
-	}
-	if (close(ref->fd) < 0) {
-		fprintf(stderr, "could not close fd %d\n", ref->fd);
-		return -1;
-	}
-	ref->fd = -1;
-	ref->size = -1;
-	ref->data = 0;
-	return 0;
-}
+#include "memory_mapper.h"
 
 #define MAX_SUBSTRING 273
 #define GIGABYTE 1073741824
@@ -69,19 +26,20 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	MmapReference ref;
-	if (map_file(argv[1], &ref) < 0) {
+	const unsigned char* file_data;
+	size_t file_size;
+	if (map_file(argv[1], &file_data, &file_size) < 0) {
 		return -1;
 	}
 
-	if (substring_enumerator_memory_usage(ref.size) > GIGABYTE) {
+	if (substring_enumerator_memory_usage(file_size) > GIGABYTE) {
 		fprintf(stderr, "avoiding allocating more than a gigabyte of memory\n");
 		return -1;
 	}
-	SubstringEnumerator* enumerator = substring_enumerator_new(ref.data, ref.size);
+	SubstringEnumerator* enumerator = substring_enumerator_new(file_data, file_size);
 
 	int count = 0;
-	for (size_t i = 0; i < ref.size; i++) {
+	for (size_t i = 0; i < file_size; i++) {
 		printf("%ld\t",i);
 		substring_enumerator_callback(enumerator, i, 2, MAX_SUBSTRING, substring_callback, &count);
 		printf("\n");
@@ -90,7 +48,7 @@ int main(int argc, char** argv) {
 
 	substring_enumerator_free(enumerator);
 
-	if (unmap_file(&ref) < 0) {
+	if (unmap(file_data, file_size) < 0) {
 		return -1;
 	}
 
