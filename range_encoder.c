@@ -40,57 +40,24 @@ static void range_encoder_flush_data(EncoderInterface* enc)
 }
 
 
-#define kTopMask ~((1 << 24) - 1)
-	
-#define kNumBitModelTotalBits 11
-#define kBitModelTotal (1 << kNumBitModelTotalBits)
-#define kNumMoveBits 5
+#define TOP_MASK ~((1 << 24) - 1)
 
 static void range_encoder_encode_bit(EncoderInterface* enc, bool bit, Prob prob)
 {
 	RangeEncoderData* data = (RangeEncoderData*)enc->private_data;
 
-	uint32_t new_bound = (data->range >> kNumBitModelTotalBits) * prob;
+	uint32_t new_bound = (data->range >> NUM_BIT_MODEL_TOTAL_BITS) * prob;
 	if (bit) {
 		data->low += (new_bound & 0xFFFFFFFFL);
 		data->range -= new_bound;
 	} else {
 		data->range = new_bound;
 	}
-	// if (bit) {
-	// 	uint32_t newBound = (data->range >> 14) * prob;
-	// 	data->low += newBound;
-	// 	data->range -= newBound;
-	// } else {
-	// 	data->range = (data->range >> 14) * prob;
-	// }
-	while ((data->range & kTopMask) == 0) {
+	while ((data->range & TOP_MASK) == 0) {
 		data->range <<= 8;
 		range_encoder_shift_low(enc);
 	}
 }
-
-	// public void Encode(short []probs, int index, int symbol) throws IOException
-	// {
-	// 	int prob = probs[index];
-	// 	int newBound = (Range >>> kNumBitModelTotalBits) * prob;
-	// 	if (symbol == 0)
-	// 	{
-	// 		Range = newBound;
-	// 		probs[index] = (short)(prob + ((kBitModelTotal - prob) >>> kNumMoveBits));
-	// 	}
-	// 	else
-	// 	{
-	// 		Low += (newBound & 0xFFFFFFFFL);
-	// 		Range -= newBound;
-	// 		probs[index] = (short)(prob - ((prob) >>> kNumMoveBits));
-	// 	}
-	// 	if ((Range & kTopMask) == 0)
-	// 	{
-	// 		Range <<= 8;
-	// 		ShiftLow();
-	// 	}
-	// }
 
 void range_encoder_new(EncoderInterface* enc, int fd)
 {
