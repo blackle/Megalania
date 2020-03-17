@@ -12,11 +12,12 @@
 #include "probability_model.h"
 #include "encoder_interface.h"
 #include "perplexity_encoder.h"
+#include "range_encoder.h"
 
 #define MIN_SUBSTRING 2
 #define MAX_SUBSTRING 273
 #define GIGABYTE 1073741824
-
+#include <byteswap.h>
 void substring_callback(void* user_data, size_t offset, size_t length)
 {
 	printf("%ld,%ld ", offset, length);
@@ -25,17 +26,28 @@ void substring_callback(void* user_data, size_t offset, size_t length)
 }
 
 //todo: compress file using only literal packets to start, i.e. write the range coder
+#define LIT_PROBS_SIZE 0x300
+
 int main(int argc, char** argv) {
-	float perplexity = 0.f;
+	int fd = open("test.raw", O_RDWR | O_CREAT | O_TRUNC);
 	EncoderInterface enc;
-	perplexity_encoder_new(&enc, &perplexity);
-	Prob prob = PROB_INIT_VAL;
+	range_encoder_new(&enc, fd);
 
-	for (int i = 0; i < 1000000; i++) {
-		encode_bit(1, &prob, &enc);
-	}
-	printf("%f\n", perplexity);
+	char props = 0;
+	uint32_t dictsize = 0x4;
+	uint64_t outsize = 1;
+	write(fd, &props, 1);
+	write(fd, &dictsize, sizeof(uint32_t));
+	write(fd, &outsize, sizeof(uint64_t));
 
+	Prob litprob = PROB_INIT_VAL;
+	encode_bit(0, &litprob, &enc);
+	encode_direct_bits('h', 8, &enc);
+
+	range_encoder_free(&enc);
+
+	fsync(fd);
+	close(fd);
 	return 0;
 	if (argc != 2) {
 		fprintf(stderr, "usage: %s filename\n", argv[1]);
