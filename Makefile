@@ -1,5 +1,5 @@
-HEADERS := substring_enumerator.h memory_mapper.h probability.h probability_model.h encoder_interface.h
-SOURCES := main.c substring_enumerator.c memory_mapper.c probability_model.c
+HEADERS := $(wildcard *.h)
+SOURCES := $(wildcard *.c)
 PROJECT := megalania
 
 $(PROJECT) : $(HEADERS) $(SOURCES) Makefile

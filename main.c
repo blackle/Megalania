@@ -7,11 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <math.h>
 #include "substring_enumerator.h"
 #include "memory_mapper.h"
 #include "probability_model.h"
 #include "encoder_interface.h"
+#include "perplexity_encoder.h"
 
 #define MIN_SUBSTRING 2
 #define MAX_SUBSTRING 273
@@ -24,15 +24,11 @@ void substring_callback(void* user_data, size_t offset, size_t length)
 	*count += 1;
 }
 
-void perplexity_encoder(EncoderInterface* enc, bool bit, Prob prob)
-{
-	float* perplexity = (float*)enc->private_data;
-	*perplexity += -log2(bit ? (1.f - prob/2048.f) : (prob/2048.f));
-}
-
+//todo: compress file using only literal packets to start, i.e. write the range coder
 int main(int argc, char** argv) {
 	float perplexity = 0.f;
-	EncoderInterface enc = { .encode_bit = perplexity_encoder, .private_data = (void*)&perplexity };
+	EncoderInterface enc;
+	perplexity_encoder_new(&enc, &perplexity);
 	Prob prob = PROB_INIT_VAL;
 
 	for (int i = 0; i < 1000000; i++) {
