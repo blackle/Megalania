@@ -13,6 +13,7 @@
 #include "encoder_interface.h"
 #include "perplexity_encoder.h"
 #include "range_encoder.h"
+#include "lzma_state.h"
 
 #define MIN_SUBSTRING 2
 #define MAX_SUBSTRING 273
@@ -29,6 +30,7 @@ void substring_callback(void* user_data, size_t offset, size_t length)
 #define LIT_PROBS_SIZE 0x300
 
 int main(int argc, char** argv) {
+	fprintf(stderr, "size: %ld\n", sizeof(LZMAState));
 	int fd = open("test.raw", O_RDWR | O_CREAT | O_TRUNC);
 	EncoderInterface enc;
 	range_encoder_new(&enc, fd);

@@ -25,7 +25,7 @@ void encode_direct_bits(unsigned bits, size_t num_bits, EncoderInterface* enc)
 void encode_bit_tree(unsigned bits, Prob* probs, size_t num_bits, EncoderInterface* enc)
 {
 	unsigned m = 1;
-	for (unsigned bit_index = num_bits; bit_index != 0; )
+	for (unsigned bit_index = num_bits; bit_index != 0;)
 	{
 		bit_index--;
 		int bit = (bits >> bit_index) & 1;

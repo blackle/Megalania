@@ -39,7 +39,6 @@ static void range_encoder_flush_data(EncoderInterface* enc)
 	}
 }
 
-
 #define TOP_MASK ~((1 << 24) - 1)
 
 static void range_encoder_encode_bit(EncoderInterface* enc, bool bit, Prob prob)
