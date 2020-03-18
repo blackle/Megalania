@@ -61,4 +61,5 @@ typedef struct {
 } LZMAState;
 
 void lzma_state_init(LZMAState* lzma_state, const unsigned char* data, size_t data_size);
+void lzma_state_update_ctx_state(LZMAState* lzma_state, int packet_type);
 // void lzma_state_copy(LZMAState* state_1, LZMAState* state_2);

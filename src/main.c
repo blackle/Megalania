@@ -34,9 +34,12 @@ void substring_callback(void* user_data, size_t offset, size_t length)
 int main(int argc, char** argv) {
 	int fd = open("test.raw", O_RDWR | O_CREAT | O_TRUNC);
 
+	LZMAState state;
+	lzma_state_init(&state, (uint8_t*)"hello!\n", 7);
+
 	char props = 0;
 	uint32_t dictsize = 0x4;
-	uint64_t outsize = 7;
+	uint64_t outsize = state.data_size;
 	write(fd, &props, 1);
 	write(fd, &dictsize, sizeof(uint32_t));
 	write(fd, &outsize, sizeof(uint64_t));
@@ -44,13 +47,10 @@ int main(int argc, char** argv) {
 	EncoderInterface enc;
 	range_encoder_new(&enc, fd);
 
-	LZMAState state;
-	lzma_state_init(&state, NULL, 0);
-
 	lzma_encode_packet(&state, &enc, literal_packet(0, 'h'));
 	lzma_encode_packet(&state, &enc, literal_packet(0, 'e'));
 	lzma_encode_packet(&state, &enc, literal_packet(0, 'l'));
-	lzma_encode_packet(&state, &enc, literal_packet(0, 'l'));
+	lzma_encode_packet(&state, &enc, short_rep_packet(0));
 	lzma_encode_packet(&state, &enc, literal_packet(0, 'o'));
 	lzma_encode_packet(&state, &enc, literal_packet(0, '!'));
 	lzma_encode_packet(&state, &enc, literal_packet(0, '\n'));
