@@ -2,11 +2,11 @@
 #include "probability_model.h"
 
 typedef struct {
-	bool match : 1;
-	bool rep : 1;
-	bool b3 : 1;
-	bool b4 : 1;
-	bool b5 : 1;
+	bool match;
+	bool rep;
+	bool b3;
+	bool b4;
+	bool b5;
 } LZMAPacketHeader;
 
 static void lzma_encode_packet_header(LZMAState* lzma_state, EncoderInterface* enc, LZMAPacketHeader head)
