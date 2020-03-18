@@ -7,7 +7,6 @@
 #define MID_CODER_BITS 3
 #define HIGH_CODER_BITS 8
 
-//todo: all of this stuff can be hidden if there is a function to get the sizeof(LZMAState)
 typedef struct {
 	Prob choice_1;
 	Prob choice_2;
@@ -61,7 +60,7 @@ typedef struct {
 	uint8_t state;
 	LZMAProbabilityModel probs;
 	size_t position;
-	float perplexity;
 } LZMAState;
 
 void lzma_state_init(LZMAState* state, const unsigned char* data, size_t data_size);
+// void lzma_state_copy(LZMAState* state_1, LZMAState* state_2);

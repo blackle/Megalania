@@ -19,5 +19,4 @@ void lzma_state_init(LZMAState* state, const unsigned char* data, size_t data_si
 	lzma_state_init_probs(&state->probs);
 
 	state->position = 0;
-	state->perplexity = 0.f;
 }

@@ -30,10 +30,7 @@ void substring_callback(void* user_data, size_t offset, size_t length)
 #define LIT_PROBS_SIZE 0x300
 
 int main(int argc, char** argv) {
-	fprintf(stderr, "size: %ld\n", sizeof(LZMAState));
 	int fd = open("test.raw", O_RDWR | O_CREAT | O_TRUNC);
-	EncoderInterface enc;
-	range_encoder_new(&enc, fd);
 
 	char props = 0;
 	uint32_t dictsize = 0x4;
@@ -41,6 +38,12 @@ int main(int argc, char** argv) {
 	write(fd, &props, 1);
 	write(fd, &dictsize, sizeof(uint32_t));
 	write(fd, &outsize, sizeof(uint64_t));
+
+	EncoderInterface enc;
+	range_encoder_new(&enc, fd);
+
+	LZMAState state;
+	lzma_state_init(&state, NULL, 0);
 
 	Prob litprob = PROB_INIT_VAL;
 	encode_bit(0, &litprob, &enc);
