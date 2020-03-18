@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-int map_file(const char* filename, const unsigned char** data, size_t* data_size)
+int map_file(const char* filename, const uint8_t** data, size_t* data_size)
 {
 	int fd = open(filename, O_RDONLY);
 	if (fd < 0) {
@@ -28,22 +28,22 @@ int map_file(const char* filename, const unsigned char** data, size_t* data_size
 		return -1;
 	}
 	*data_size = buf.st_size;
-	*data = (unsigned char*) map;
+	*data = (uint8_t*) map;
 	return 0;
 }
 
-int map_anonymous(size_t data_size, unsigned char** data)
+int map_anonymous(size_t data_size, uint8_t** data)
 {
 	void* map = mmap(0, data_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
 	if (map == MAP_FAILED) {
 		fprintf(stderr, "could map anonymous memory of size %ld\n", data_size);
 		return -1;
 	}
-	*data = (unsigned char*) map;
+	*data = (uint8_t*) map;
 	return 0;
 }
 
-int unmap(const unsigned char* data, size_t data_size)
+int unmap(const uint8_t* data, size_t data_size)
 {
 	if (munmap((void*) data, data_size) < 0) {
 		fprintf(stderr, "could not munmap data\n");

@@ -23,7 +23,7 @@
 typedef struct {
 	uint16_t meta;
 	union {
-		unsigned char lit;
+		uint8_t lit;
 		uint16_t match;
 	} data;
 } LZMAPacket;

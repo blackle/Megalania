@@ -50,7 +50,7 @@ typedef struct {
 } LZMAProbabilityModel;
 
 typedef struct {
-	const unsigned char* data;
+	const uint8_t* data;
 	size_t data_size;
 
 	uint8_t ctx_state;
@@ -60,6 +60,6 @@ typedef struct {
 	size_t position;
 } LZMAState;
 
-void lzma_state_init(LZMAState* lzma_state, const unsigned char* data, size_t data_size);
+void lzma_state_init(LZMAState* lzma_state, const uint8_t* data, size_t data_size);
 void lzma_state_update_ctx_state(LZMAState* lzma_state, int packet_type);
 // void lzma_state_copy(LZMAState* state_1, LZMAState* state_2);

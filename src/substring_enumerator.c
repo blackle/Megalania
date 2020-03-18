@@ -7,7 +7,7 @@
 #define N_CHARS 256
 
 struct SubstringEnumerator_struct {
-	const unsigned char* data;
+	const uint8_t* data;
 	size_t data_size;
 
 	size_t min_length;
@@ -25,7 +25,7 @@ size_t substring_enumerator_memory_usage(size_t data_size)
 
 void memoize_bigram_positions(SubstringEnumerator* em)
 {
-	const unsigned char* data = em->data;
+	const uint8_t* data = em->data;
 	size_t data_size = em->data_size;
 
 	for (size_t i = 1; i < data_size; i++) {
@@ -38,15 +38,15 @@ void memoize_bigram_positions(SubstringEnumerator* em)
 
 	int fills[N_CHARS][N_CHARS] = {0};
 	for (size_t i = 1; i < data_size; i++) {
-		unsigned char first = data[i-1];
-		unsigned char second = data[i];
+		uint8_t first = data[i-1];
+		uint8_t second = data[i];
 		size_t offset = em->bigram_offsets[first][second] + fills[first][second];
 		em->bigram_positions[offset] = i-1;
 		fills[first][second]++;
 	}
 }
 
-SubstringEnumerator* substring_enumerator_new(const unsigned char* data, size_t data_size, size_t min_length, size_t max_length)
+SubstringEnumerator* substring_enumerator_new(const uint8_t* data, size_t data_size, size_t min_length, size_t max_length)
 {
 	if (min_length != 2) {
 		fprintf(stderr, "Error: only min_length = 2 is supported in substring_enumerator_callback\n");
@@ -65,7 +65,7 @@ SubstringEnumerator* substring_enumerator_new(const unsigned char* data, size_t 
 	enumerator->min_length = min_length;
 	enumerator->max_length = max_length;
 
-	unsigned char* bigram_positions;
+	uint8_t* bigram_positions;
 	if (map_anonymous(sizeof(size_t) * data_size, &bigram_positions)) {
 		free(enumerator);
 		return NULL;
@@ -78,7 +78,7 @@ SubstringEnumerator* substring_enumerator_new(const unsigned char* data, size_t 
 }
 void substring_enumerator_free(SubstringEnumerator* enumerator)
 {
-	unmap((const unsigned char*)enumerator->bigram_positions, sizeof(size_t) * enumerator->data_size);
+	unmap((const uint8_t*)enumerator->bigram_positions, sizeof(size_t) * enumerator->data_size);
 	free(enumerator);
 }
 
@@ -87,8 +87,8 @@ void substring_enumerator_callback(const SubstringEnumerator* em, size_t pos, Su
 	if (pos == 0) return;
 	if (pos == em->data_size - 1) return;
 
-	unsigned char first = em->data[pos];
-	unsigned char second = em->data[pos+1];
+	uint8_t first = em->data[pos];
+	uint8_t second = em->data[pos+1];
 	size_t offset = em->bigram_offsets[first][second];
 	size_t size = em->bigram_sizes[first][second];
 	for (size_t i = 0; i < size; i++) {

@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	const unsigned char* file_data;
+	const uint8_t* file_data;
 	size_t file_size;
 	if (map_file(argv[1], &file_data, &file_size) < 0) {
 		return -1;
