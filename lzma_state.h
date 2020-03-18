@@ -58,6 +58,8 @@ typedef struct {
 	size_t data_size;
 
 	uint8_t state;
+
+	uint32_t dists[4];
 	LZMAProbabilityModel probs;
 	size_t position;
 } LZMAState;

@@ -1,4 +1,5 @@
 #include "lzma_state.h"
+#include <string.h>
 
 static void lzma_state_init_probs(LZMAProbabilityModel* probs)
 {
@@ -16,6 +17,7 @@ void lzma_state_init(LZMAState* state, const unsigned char* data, size_t data_si
 	state->data_size = data_size;
 
 	state->state = 0;
+	memset(state->dists, 0, sizeof(state->dists));
 	lzma_state_init_probs(&state->probs);
 
 	state->position = 0;
