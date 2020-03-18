@@ -1,5 +1,5 @@
-HEADERS := $(wildcard *.h)
-SOURCES := $(wildcard *.c)
+HEADERS := $(wildcard src/*.h)
+SOURCES := $(wildcard src/*.c)
 PROJECT := megalania
 
 $(PROJECT) : $(HEADERS) $(SOURCES) Makefile
