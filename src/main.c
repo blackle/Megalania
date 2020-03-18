@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 	int fd = open("test.raw", O_RDWR | O_CREAT | O_TRUNC);
 
 	LZMAState state;
-	lzma_state_init(&state, (uint8_t*)"hello!\n", 7);
+	lzma_state_init(&state, (uint8_t*)"hello! hello! B\n", 7);
 
 	char props = 0;
 	uint32_t dictsize = 0x4;
@@ -53,6 +53,10 @@ int main(int argc, char** argv) {
 	lzma_encode_packet(&state, &enc, short_rep_packet(0));
 	lzma_encode_packet(&state, &enc, literal_packet(0, 'o'));
 	lzma_encode_packet(&state, &enc, literal_packet(0, '!'));
+	lzma_encode_packet(&state, &enc, literal_packet(0, ' '));
+	lzma_encode_packet(&state, &enc, match_packet(0, 7, 6));
+	lzma_encode_packet(&state, &enc, literal_packet(0, ' '));
+	lzma_encode_packet(&state, &enc, literal_packet(0, 'B'));
 	lzma_encode_packet(&state, &enc, literal_packet(0, '\n'));
 
 	range_encoder_free(&enc);

@@ -4,8 +4,11 @@
 
 #define NUM_POS_BITS_MAX 4
 #define LOW_CODER_BITS 3
+#define LOW_CODER_SYMBOLS (1 << LOW_CODER_BITS)
 #define MID_CODER_BITS 3
+#define MID_CODER_SYMBOLS (1 << MID_CODER_BITS)
 #define HIGH_CODER_BITS 8
+#define HIGH_CODER_SYMBOLS (1 << HIGH_CODER_BITS)
 
 typedef struct {
 	Prob choice_1;

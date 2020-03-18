@@ -6,10 +6,11 @@ LZMAPacket literal_packet(int parent, uint8_t literal)
 	return packet;
 }
 
-// LZMAPacket match_packet(int parent, int dist, int len)
-// {
-
-// }
+LZMAPacket match_packet(int parent, unsigned int dist, unsigned int len)
+{
+	LZMAPacket packet = { .meta = PACK_META(parent, MATCH), .data = { .match = PACK_MATCH(dist, len) } };
+	return packet;
+}
 
 LZMAPacket short_rep_packet(int parent)
 {

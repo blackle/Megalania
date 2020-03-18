@@ -5,7 +5,7 @@
 #define LITERAL 1
 #define MATCH 2
 #define SHORT_REP 3
-#define LONG_REP_0 4
+#define LONG_REP_0 4 //todo: can the LONG_REP_X types be one type, with the 'dist' field holding the index?
 #define LONG_REP_1 5
 #define LONG_REP_2 6
 #define LONG_REP_3 7
@@ -24,11 +24,11 @@ typedef struct {
 	uint16_t meta;
 	union {
 		uint8_t lit;
-		uint16_t match;
+		uint16_t match; //todo: 16 bits is not enough, since then dist would only have 7 bits
 	} data;
 } LZMAPacket;
 
 LZMAPacket literal_packet(int parent, uint8_t literal);
-// LZMAPacket match_packet(int parent, int dist, int len);
+LZMAPacket match_packet(int parent, unsigned int dist, unsigned int len);
 LZMAPacket short_rep_packet(int parent);
 // LZMAPacket long_rep_packet(int parent, int dist_index, int len);
