@@ -14,6 +14,8 @@
 #include "perplexity_encoder.h"
 #include "range_encoder.h"
 #include "lzma_state.h"
+#include "lzma_packet.h"
+#include "lzma_packet_encoder.h"
 
 #define MIN_SUBSTRING 2
 #define MAX_SUBSTRING 273
@@ -34,7 +36,7 @@ int main(int argc, char** argv) {
 
 	char props = 0;
 	uint32_t dictsize = 0x4;
-	uint64_t outsize = 1;
+	uint64_t outsize = 7;
 	write(fd, &props, 1);
 	write(fd, &dictsize, sizeof(uint32_t));
 	write(fd, &outsize, sizeof(uint64_t));
@@ -45,9 +47,13 @@ int main(int argc, char** argv) {
 	LZMAState state;
 	lzma_state_init(&state, NULL, 0);
 
-	Prob litprob = PROB_INIT_VAL;
-	encode_bit(0, &litprob, &enc);
-	encode_direct_bits('h', 8, &enc);
+	lzma_encode_packet(&state, &enc, literal_packet(0, 'h'));
+	lzma_encode_packet(&state, &enc, literal_packet(0, 'e'));
+	lzma_encode_packet(&state, &enc, literal_packet(0, 'l'));
+	lzma_encode_packet(&state, &enc, literal_packet(0, 'l'));
+	lzma_encode_packet(&state, &enc, literal_packet(0, 'o'));
+	lzma_encode_packet(&state, &enc, literal_packet(0, '!'));
+	lzma_encode_packet(&state, &enc, literal_packet(0, '\n'));
 
 	range_encoder_free(&enc);
 

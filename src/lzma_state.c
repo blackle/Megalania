@@ -11,14 +11,14 @@ static void lzma_state_init_probs(LZMAProbabilityModel* probs)
 	}
 }
 
-void lzma_state_init(LZMAState* state, const unsigned char* data, size_t data_size)
+void lzma_state_init(LZMAState* lzma_state, const unsigned char* data, size_t data_size)
 {
-	state->data = data;
-	state->data_size = data_size;
+	lzma_state->data = data;
+	lzma_state->data_size = data_size;
 
-	state->state = 0;
-	memset(state->dists, 0, sizeof(state->dists));
-	lzma_state_init_probs(&state->probs);
+	lzma_state->ctx_state = 0;
+	memset(lzma_state->dists, 0, sizeof(lzma_state->dists));
+	lzma_state_init_probs(&lzma_state->probs);
 
-	state->position = 0;
+	lzma_state->position = 0;
 }

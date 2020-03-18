@@ -3,4 +3,4 @@
 #include "lzma_packet.h"
 #include "encoder_interface.h"
 
-void lzma_encode_packet(LZMAState* state, EncoderInterface* enc, LZMAPacket packet);
+void lzma_encode_packet(LZMAState* lzma_state, EncoderInterface* enc, LZMAPacket packet);

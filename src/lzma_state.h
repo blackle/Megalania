@@ -16,12 +16,6 @@ typedef struct {
 	Prob high_coder[1 << HIGH_CODER_BITS];
 } LengthProbabilityModel;
 
-#define LIT_PROBS_SIZE 0x300
-
-typedef struct {
-	Prob probs[LIT_PROBS_SIZE];
-} LiteralProbabilityModel;
-
 #define NUM_LEN_TO_POS_STATES 4
 #define POS_SLOT_BITS 6
 #define ALIGN_BITS 4
@@ -43,26 +37,28 @@ typedef struct {
 	Prob is_rep_g1[NUM_STATES];
 	Prob is_rep_g2[NUM_STATES];
 	Prob is_rep0_long[NUM_STATES << NUM_POS_BITS_MAX];
-} StateProbabilityModel;
+} ContextStateProbabilityModel;
+
+#define LIT_PROBS_SIZE 0x300
 
 typedef struct {
-	LiteralProbabilityModel lit;
+	Prob lit[LIT_PROBS_SIZE];
 	LengthProbabilityModel len;
 	LengthProbabilityModel rep_len;
 	DistanceProbabilityModel dist;
-	StateProbabilityModel state;
+	ContextStateProbabilityModel ctx_state;
 } LZMAProbabilityModel;
 
 typedef struct {
 	const unsigned char* data;
 	size_t data_size;
 
-	uint8_t state;
+	uint8_t ctx_state;
 
 	uint32_t dists[4];
 	LZMAProbabilityModel probs;
 	size_t position;
 } LZMAState;
 
-void lzma_state_init(LZMAState* state, const unsigned char* data, size_t data_size);
+void lzma_state_init(LZMAState* lzma_state, const unsigned char* data, size_t data_size);
 // void lzma_state_copy(LZMAState* state_1, LZMAState* state_2);
