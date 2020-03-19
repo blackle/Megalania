@@ -13,9 +13,9 @@ static void lzma_encode_packet_header(LZMAState* lzma_state, EncoderInterface* e
 {
 	ContextStateProbabilityModel* ctx_probs = &lzma_state->probs.ctx_state;
 
-	unsigned int ctx_pos_bits = 0; //todo: position context bits currently unsupported
-	unsigned int ctx_state = lzma_state->ctx_state;
-	unsigned int ctx_pos_state = (ctx_state << NUM_POS_BITS_MAX) + ctx_pos_bits;
+	unsigned ctx_pos_bits = 0; //todo: position context bits currently unsupported
+	unsigned ctx_state = lzma_state->ctx_state;
+	unsigned ctx_pos_state = (ctx_state << NUM_POS_BITS_MAX) + ctx_pos_bits;
 
 	encode_bit(head->match, &ctx_probs->is_match[ctx_pos_state], enc);
 	if (!head->match) {
@@ -38,9 +38,9 @@ static void lzma_encode_packet_header(LZMAState* lzma_state, EncoderInterface* e
 	}
 }
 
-static void lzma_encode_length(LengthProbabilityModel* probs, EncoderInterface* enc, unsigned int len)
+static void lzma_encode_length(LengthProbabilityModel* probs, EncoderInterface* enc, unsigned len)
 {
-	unsigned int ctx_pos_bits = 0; //todo: position context bits currently unsupported
+	unsigned ctx_pos_bits = 0; //todo: position context bits currently unsupported
 	if (len < 2) return; //todo: error messaging/assert
 	len -= 2;
 
@@ -62,14 +62,14 @@ static void lzma_encode_length(LengthProbabilityModel* probs, EncoderInterface* 
 }
 
 //https://stackoverflow.com/a/42030874
-static inline unsigned int get_msb32(register unsigned int val)
+static inline unsigned get_msb32(register unsigned val)
 {
   return 32 - __builtin_clz(val);
 }
 
-static void lzma_encode_distance(LZMAState* lzma_state, EncoderInterface* enc, unsigned int dist, unsigned int len)
+static void lzma_encode_distance(LZMAState* lzma_state, EncoderInterface* enc, unsigned dist, unsigned len)
 {
-	unsigned int len_ctx = len - 2;
+	unsigned len_ctx = len - 2;
 	if (len_ctx >= NUM_LEN_TO_POS_STATES) {
 		len_ctx = NUM_LEN_TO_POS_STATES - 1;
 	}
@@ -80,28 +80,26 @@ static void lzma_encode_distance(LZMAState* lzma_state, EncoderInterface* enc, u
 		return;
 	}
 
-	//todo: can i just say "unsigned" instead of "unsigned int"
-	unsigned int num_low_bits = get_msb32(dist) - 2;
-	unsigned int low_bits = dist & ((1 << num_low_bits) - 1);
-	unsigned int high_bits = dist >> num_low_bits;
-	unsigned int pos_slot = num_low_bits*2 + high_bits;
+	unsigned num_low_bits = get_msb32(dist) - 2;
+	unsigned low_bits = dist & ((1 << num_low_bits) - 1);
+	unsigned high_bits = dist >> num_low_bits;
+	unsigned pos_slot = num_low_bits*2 + high_bits;
 	encode_bit_tree(pos_slot, probs->pos_slot_coder[len_ctx], POS_SLOT_BITS, enc);
 
 	if (pos_slot < END_POS_MODEL_INDEX) {
 		//todo: decypher this shit, is pos_coder overlapped or...???
-		unsigned int pos_coder_ctx = (high_bits << num_low_bits) - pos_slot;
+		unsigned pos_coder_ctx = (high_bits << num_low_bits) - pos_slot;
 		encode_bit_tree_reverse(low_bits, probs->pos_coder + pos_coder_ctx, num_low_bits, enc);
 		return;
 	}
 
-	unsigned int num_direct_bits = num_low_bits - ALIGN_BITS;
+	unsigned num_direct_bits = num_low_bits - ALIGN_BITS;
 	num_low_bits = ALIGN_BITS;
-	unsigned int direct_bits = low_bits >> ALIGN_BITS;
+	unsigned direct_bits = low_bits >> ALIGN_BITS;
 	low_bits = low_bits & ((1 << num_low_bits) - 1);
 
 	encode_direct_bits(direct_bits, num_direct_bits, enc);
 	encode_bit_tree_reverse(low_bits, probs->align_coder, num_low_bits, enc);
-	return;
 }
 
 static void lzma_encode_literal(LZMAState* lzma_state, EncoderInterface* enc)
@@ -110,8 +108,8 @@ static void lzma_encode_literal(LZMAState* lzma_state, EncoderInterface* enc)
 	lzma_encode_packet_header(lzma_state, enc, &head);
 
 	LZMAProbabilityModel* probs = &lzma_state->probs;
-	unsigned int symbol = 1;
-	unsigned int lit_ctx = 0; //todo: literal context bits currently unsupported
+	unsigned symbol = 1;
+	unsigned lit_ctx = 0; //todo: literal context bits currently unsupported
 	Prob *lit_probs = &probs->lit[0x300 * lit_ctx];
 
 	uint8_t lit = lzma_state->data[lzma_state->position];
@@ -120,7 +118,7 @@ static void lzma_encode_literal(LZMAState* lzma_state, EncoderInterface* enc)
 	uint8_t match_byte = lzma_state->data[lzma_state->position - lzma_state->dists[0] - 1];
 	for (int i = 7; i >= 0; i--) {
 		bool bit = (lit >> i) & 1;
-		unsigned int context = symbol;
+		unsigned context = symbol;
 
 		if (matched) {
 			int match_bit = (match_byte >> i) & 1;
@@ -158,7 +156,7 @@ static void lzma_encode_short_rep(LZMAState* lzma_state, EncoderInterface* enc)
 	lzma_state->position++;
 }
 
-static void lzma_encode_long_rep(LZMAState* lzma_state, EncoderInterface* enc, unsigned int dist_index, unsigned int len)
+static void lzma_encode_long_rep(LZMAState* lzma_state, EncoderInterface* enc, unsigned dist_index, unsigned len)
 {
 	LZMAPacketHeader head = {
 		.match = 1,
@@ -170,7 +168,7 @@ static void lzma_encode_long_rep(LZMAState* lzma_state, EncoderInterface* enc, u
 	lzma_encode_packet_header(lzma_state, enc, &head);
 
 	//todo: assert dist_index < 4
-	unsigned int dist = lzma_state->dists[dist_index];
+	unsigned dist = lzma_state->dists[dist_index];
 	if (dist_index > 2) {
 		lzma_state->dists[3] = lzma_state->dists[2];
 	}

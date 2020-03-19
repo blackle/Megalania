@@ -24,7 +24,7 @@ typedef struct {
 	uint32_t match; //todo: is 32 bits enough?
 } LZMAPacket;
 
-LZMAPacket literal_packet(int parent);
-LZMAPacket match_packet(int parent, unsigned int dist, unsigned int len);
-LZMAPacket short_rep_packet(int parent);
-LZMAPacket long_rep_packet(int parent, int dist_index, int len);
+LZMAPacket literal_packet(unsigned parent);
+LZMAPacket match_packet(unsigned parent, unsigned dist, unsigned len);
+LZMAPacket short_rep_packet(unsigned parent);
+LZMAPacket long_rep_packet(unsigned parent, unsigned dist_index, unsigned len);
