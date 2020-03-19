@@ -2,7 +2,7 @@
 
 LZMAPacket literal_packet(unsigned parent)
 {
-	LZMAPacket packet = { .meta = PACK_META(parent, LITERAL) };
+	LZMAPacket packet = { .meta = PACK_META(parent, LITERAL), .match = PACK_MATCH(0, 1) };
 	return packet;
 }
 
@@ -14,7 +14,7 @@ LZMAPacket match_packet(unsigned parent, unsigned dist, unsigned len)
 
 LZMAPacket short_rep_packet(unsigned parent)
 {
-	LZMAPacket packet = { .meta = PACK_META(parent, SHORT_REP) };
+	LZMAPacket packet = { .meta = PACK_META(parent, SHORT_REP), .match = PACK_MATCH(0, 1) };
 	return packet;
 }
 

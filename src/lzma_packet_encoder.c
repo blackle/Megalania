@@ -129,7 +129,6 @@ static void lzma_encode_literal(LZMAState* lzma_state, EncoderInterface* enc)
 		encode_bit(bit, &lit_probs[context], enc);
 		symbol = (symbol << 1) | bit;
 	}
-	lzma_state->position++;
 }
 
 static void lzma_encode_match(LZMAState* lzma_state, EncoderInterface* enc, unsigned dist, unsigned len)
@@ -140,16 +139,12 @@ static void lzma_encode_match(LZMAState* lzma_state, EncoderInterface* enc, unsi
 	lzma_state_push_distance(lzma_state, dist);
 	lzma_encode_length(&lzma_state->probs.len, enc, len);
 	lzma_encode_distance(lzma_state, enc, dist, len);
-
-	lzma_state->position += len;
 }
 
 static void lzma_encode_short_rep(LZMAState* lzma_state, EncoderInterface* enc)
 {
 	LZMAPacketHeader head = { .match = 1, .rep = 1, .b3 = 0, .b4 = 0 };
 	lzma_encode_packet_header(lzma_state, enc, &head);
-
-	lzma_state->position++;
 }
 
 static void lzma_encode_long_rep(LZMAState* lzma_state, EncoderInterface* enc, unsigned dist_index, unsigned len)
@@ -165,8 +160,6 @@ static void lzma_encode_long_rep(LZMAState* lzma_state, EncoderInterface* enc, u
 
 	lzma_state_promote_distance_at(lzma_state, dist_index);
 	lzma_encode_length(&lzma_state->probs.rep_len, enc, len);
-
-	lzma_state->position += len;
 }
 
 void lzma_encode_packet(LZMAState* lzma_state, EncoderInterface* enc, LZMAPacket packet)
@@ -193,4 +186,5 @@ void lzma_encode_packet(LZMAState* lzma_state, EncoderInterface* enc, LZMAPacket
 			break;
 	}
 	lzma_state_update_ctx_state(lzma_state, type);
+	lzma_state->position += len;
 };

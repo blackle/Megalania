@@ -20,7 +20,7 @@
 #define MIN_SUBSTRING 2
 #define MAX_SUBSTRING 273
 #define GIGABYTE 1073741824
-#include <byteswap.h>
+
 void substring_callback(void* user_data, size_t offset, size_t length)
 {
 	printf("%ld,%ld ", offset, length);
