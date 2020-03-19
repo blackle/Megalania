@@ -64,6 +64,7 @@ static void range_encoder_encode_direct_bits(EncoderInterface* enc, unsigned bit
 	RangeEncoderData* data = (RangeEncoderData*)enc->private_data;
 	do {
 		bool bit = bits & (1 << (num_bits - 1));
+		// fprintf(stderr, "bit: %d direct %u\n", bit, data->range);
 		data->range >>= 1;
 		if (bit) {
 			data->low += data->range;

@@ -9,5 +9,4 @@ typedef struct {
 } GreedyCompressor;
 
 void greedy_compressor_new(GreedyCompressor* greedy, LZMAState* lzma_state);
-void greedy_compressor_evaluate_packet(GreedyCompressor* greedy, LZMAPacket packet);
-void greedy_substring_callback(void* user_data, size_t offset, size_t length);
+void greedy_compressor_packet_callback(void* user_data, LZMAPacket packet);
