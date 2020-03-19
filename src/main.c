@@ -34,41 +34,8 @@ void substring_callback(void* user_data, size_t offset, size_t length)
 //todo: write tests!!!
 
 int main(int argc, char** argv) {
-	int fd = open("test.raw", O_RDWR | O_CREAT | O_TRUNC);
-
-	LZMAState state;
-	lzma_state_init(&state, (uint8_t*)"hello! hello! hello!\n\n\n\n\n", 25);
-
-	char props = 0;
-	uint32_t dictsize = 0x4;
-	uint64_t outsize = state.data_size;
-	write(fd, &props, 1);
-	write(fd, &dictsize, sizeof(uint32_t));
-	write(fd, &outsize, sizeof(uint64_t));
-
-	EncoderInterface enc;
-	range_encoder_new(&enc, fd);
-
-	lzma_encode_packet(&state, &enc, literal_packet(0));
-	lzma_encode_packet(&state, &enc, literal_packet(0));
-	lzma_encode_packet(&state, &enc, literal_packet(0));
-	lzma_encode_packet(&state, &enc, short_rep_packet(0));
-	lzma_encode_packet(&state, &enc, literal_packet(0));
-	lzma_encode_packet(&state, &enc, literal_packet(0));
-	lzma_encode_packet(&state, &enc, literal_packet(0));
-	lzma_encode_packet(&state, &enc, match_packet(0, 6, 13));
-	lzma_encode_packet(&state, &enc, literal_packet(0));
-	lzma_encode_packet(&state, &enc, long_rep_packet(0, 1, 4));
-	// lzma_encode_packet(&state, &enc, literal_packet(0));
-	// lzma_encode_packet(&state, &enc, literal_packet(0));
-
-	range_encoder_free(&enc);
-
-	fsync(fd);
-	close(fd);
-	return 0;
 	if (argc != 2) {
-		fprintf(stderr, "usage: %s filename\n", argv[1]);
+		fprintf(stderr, "usage: %s filename\n", argv[0]);
 		return -1;
 	}
 
@@ -78,6 +45,26 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
+	LZMAState state;
+	lzma_state_init(&state, file_data, file_size);
+
+	char props = 0;
+	uint32_t dictsize = 0x4;
+	uint64_t outsize = file_size;
+	write(1, &props, 1);
+	write(1, &dictsize, sizeof(uint32_t));
+	write(1, &outsize, sizeof(uint64_t));
+
+	EncoderInterface enc;
+	range_encoder_new(&enc, 1);
+
+	for (size_t i = 0; i < file_size; i++) {
+		lzma_encode_packet(&state, &enc, literal_packet(0));
+	}
+
+	range_encoder_free(&enc);
+
+/*
 	if (substring_enumerator_memory_usage(file_size) > GIGABYTE) {
 		fprintf(stderr, "avoiding allocating more than a gigabyte of memory\n");
 		return -1;
@@ -93,6 +80,7 @@ int main(int argc, char** argv) {
 	printf("\n%d\n", count);
 
 	substring_enumerator_free(enumerator);
+*/
 
 	if (unmap(file_data, file_size) < 0) {
 		return -1;

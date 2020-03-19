@@ -115,7 +115,10 @@ static void lzma_encode_literal(LZMAState* lzma_state, EncoderInterface* enc)
 	uint8_t lit = lzma_state->data[lzma_state->position];
 	bool matched = lzma_state->ctx_state >= 7;
 	//todo: make 'get_byte_at_distance' function somewhere
-	uint8_t match_byte = lzma_state->data[lzma_state->position - lzma_state->dists[0] - 1];
+	uint8_t match_byte = 0;
+	if (matched) {
+		match_byte = lzma_state->data[lzma_state->position - lzma_state->dists[0] - 1];
+	}
 	for (int i = 7; i >= 0; i--) {
 		bool bit = (lit >> i) & 1;
 		unsigned context = symbol;
