@@ -87,7 +87,8 @@ static void lzma_encode_distance(LZMAState* lzma_state, EncoderInterface* enc, u
 	encode_bit_tree(pos_slot, probs->pos_slot_coder[len_ctx], POS_SLOT_BITS, enc);
 
 	if (pos_slot < END_POS_MODEL_INDEX) {
-		unsigned int pos_coder_ctx = ((2 | (pos_slot & 1)) << num_low_bits) - pos_slot;
+		//todo: decypher this shit, is pos_coder overlapped or...???
+		unsigned int pos_coder_ctx = (high_bits << num_low_bits) - pos_slot;
 		encode_bit_tree_reverse(low_bits, probs->pos_coder + pos_coder_ctx, num_low_bits, enc);
 		return;
 	}
