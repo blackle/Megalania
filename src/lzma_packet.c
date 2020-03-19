@@ -18,7 +18,8 @@ LZMAPacket short_rep_packet(int parent)
 	return packet;
 }
 
-// LZMAPacket long_rep_packet(int parent, int dist_index, int len)
-// {
-
-// }
+LZMAPacket long_rep_packet(int parent, int dist_index, int len)
+{
+	LZMAPacket packet = { .meta = PACK_META(parent, LONG_REP), .match = PACK_MATCH(dist_index, len) };
+	return packet;
+}

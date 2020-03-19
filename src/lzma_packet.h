@@ -27,4 +27,4 @@ typedef struct {
 LZMAPacket literal_packet(int parent);
 LZMAPacket match_packet(int parent, unsigned int dist, unsigned int len);
 LZMAPacket short_rep_packet(int parent);
-// LZMAPacket long_rep_packet(int parent, int dist_index, int len);
+LZMAPacket long_rep_packet(int parent, int dist_index, int len);

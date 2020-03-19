@@ -31,11 +31,13 @@ void substring_callback(void* user_data, size_t offset, size_t length)
 //todo: compress file using only literal packets to start, i.e. write the range coder
 #define LIT_PROBS_SIZE 0x300
 
+//todo: write tests!!!
+
 int main(int argc, char** argv) {
 	int fd = open("test.raw", O_RDWR | O_CREAT | O_TRUNC);
 
 	LZMAState state;
-	lzma_state_init(&state, (uint8_t*)"hello! hello! hello!\n", 21);
+	lzma_state_init(&state, (uint8_t*)"hello! hello! hello!\n\n\n\n\n", 25);
 
 	char props = 0;
 	uint32_t dictsize = 0x4;
@@ -56,6 +58,7 @@ int main(int argc, char** argv) {
 	lzma_encode_packet(&state, &enc, literal_packet(0));
 	lzma_encode_packet(&state, &enc, match_packet(0, 6, 13));
 	lzma_encode_packet(&state, &enc, literal_packet(0));
+	lzma_encode_packet(&state, &enc, long_rep_packet(0, 1, 4));
 	// lzma_encode_packet(&state, &enc, literal_packet(0));
 	// lzma_encode_packet(&state, &enc, literal_packet(0));
 

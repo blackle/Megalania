@@ -38,25 +38,25 @@ static void lzma_encode_packet_header(LZMAState* lzma_state, EncoderInterface* e
 	}
 }
 
-static void lzma_encode_length(LengthProbabilityModel* probs, BitTreeEncoder bt_enc, EncoderInterface* enc, unsigned int len)
+static void lzma_encode_length(LengthProbabilityModel* probs, EncoderInterface* enc, unsigned int len)
 {
 	unsigned int ctx_pos_bits = 0; //todo: position context bits currently unsupported
-	if (len < 2) return; //todo: error messaging
+	if (len < 2) return; //todo: error messaging/assert
 	len -= 2;
 
 	if (len < LOW_CODER_SYMBOLS) {
 		encode_bit(0, &probs->choice_1, enc);
-		(*bt_enc)(len, probs->low_coder[ctx_pos_bits], LOW_CODER_BITS, enc);
+		encode_bit_tree(len, probs->low_coder[ctx_pos_bits], LOW_CODER_BITS, enc);
 	} else {
 		len -= LOW_CODER_SYMBOLS;
 		encode_bit(1, &probs->choice_1, enc);
 		if (len < MID_CODER_SYMBOLS) {
 			encode_bit(0, &probs->choice_2, enc);
-			(*bt_enc)(len, probs->mid_coder[ctx_pos_bits], MID_CODER_BITS, enc);
+			encode_bit_tree(len, probs->mid_coder[ctx_pos_bits], MID_CODER_BITS, enc);
 		} else {
 			len -= MID_CODER_SYMBOLS;
 			encode_bit(1, &probs->choice_2, enc);
-			(*bt_enc)(len, probs->high_coder, HIGH_CODER_BITS, enc);
+			encode_bit_tree(len, probs->high_coder, HIGH_CODER_BITS, enc);
 		}
 	}
 }
@@ -80,6 +80,7 @@ static void lzma_encode_distance(LZMAState* lzma_state, EncoderInterface* enc, u
 		return;
 	}
 
+	//todo: can i just say "unsigned" instead of "unsigned int"
 	unsigned int num_low_bits = get_msb32(dist) - 2;
 	unsigned int low_bits = dist & ((1 << num_low_bits) - 1);
 	unsigned int high_bits = dist >> num_low_bits;
@@ -143,7 +144,7 @@ static void lzma_encode_match(LZMAState* lzma_state, EncoderInterface* enc, int 
 	lzma_state->dists[1] = lzma_state->dists[0];
 	lzma_state->dists[0] = dist;
 
-	lzma_encode_length(&lzma_state->probs.len, encode_bit_tree, enc, len);
+	lzma_encode_length(&lzma_state->probs.len, enc, len);
 	lzma_encode_distance(lzma_state, enc, dist, len);
 
 	lzma_state->position += len;
@@ -155,6 +156,35 @@ static void lzma_encode_short_rep(LZMAState* lzma_state, EncoderInterface* enc)
 	lzma_encode_packet_header(lzma_state, enc, &head);
 
 	lzma_state->position++;
+}
+
+static void lzma_encode_long_rep(LZMAState* lzma_state, EncoderInterface* enc, unsigned int dist_index, unsigned int len)
+{
+	LZMAPacketHeader head = {
+		.match = 1,
+		.rep = 1,
+		.b3 = (dist_index != 0),
+		.b4 = (dist_index != 1),
+		.b5 = (dist_index != 2)
+	};
+	lzma_encode_packet_header(lzma_state, enc, &head);
+
+	//todo: assert dist_index < 4
+	unsigned int dist = lzma_state->dists[dist_index];
+	if (dist_index > 2) {
+		lzma_state->dists[3] = lzma_state->dists[2];
+	}
+	if (dist_index > 1) {
+		lzma_state->dists[2] = lzma_state->dists[1];
+	}
+	if (dist_index > 0) {
+		lzma_state->dists[1] = lzma_state->dists[0];
+	}
+	lzma_state->dists[0] = dist;
+
+	lzma_encode_length(&lzma_state->probs.rep_len, enc, len);
+
+	lzma_state->position += len;
 }
 
 void lzma_encode_packet(LZMAState* lzma_state, EncoderInterface* enc, LZMAPacket packet)
@@ -171,6 +201,9 @@ void lzma_encode_packet(LZMAState* lzma_state, EncoderInterface* enc, LZMAPacket
 			break;
 		case SHORT_REP:
 			lzma_encode_short_rep(lzma_state, enc);
+			break;
+		case LONG_REP:
+			lzma_encode_long_rep(lzma_state, enc, dist, len);
 			break;
 		case INVALID:
 		default:
