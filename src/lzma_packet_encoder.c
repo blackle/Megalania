@@ -132,16 +132,12 @@ static void lzma_encode_literal(LZMAState* lzma_state, EncoderInterface* enc)
 	lzma_state->position++;
 }
 
-static void lzma_encode_match(LZMAState* lzma_state, EncoderInterface* enc, int dist, int len)
+static void lzma_encode_match(LZMAState* lzma_state, EncoderInterface* enc, unsigned dist, unsigned len)
 {
 	LZMAPacketHeader head = { .match = 1, .rep = 0 };
 	lzma_encode_packet_header(lzma_state, enc, &head);
 
-	lzma_state->dists[3] = lzma_state->dists[2];
-	lzma_state->dists[2] = lzma_state->dists[1];
-	lzma_state->dists[1] = lzma_state->dists[0];
-	lzma_state->dists[0] = dist;
-
+	lzma_state_push_distance(lzma_state, dist);
 	lzma_encode_length(&lzma_state->probs.len, enc, len);
 	lzma_encode_distance(lzma_state, enc, dist, len);
 
@@ -167,19 +163,7 @@ static void lzma_encode_long_rep(LZMAState* lzma_state, EncoderInterface* enc, u
 	};
 	lzma_encode_packet_header(lzma_state, enc, &head);
 
-	//todo: assert dist_index < 4
-	unsigned dist = lzma_state->dists[dist_index];
-	if (dist_index > 2) {
-		lzma_state->dists[3] = lzma_state->dists[2];
-	}
-	if (dist_index > 1) {
-		lzma_state->dists[2] = lzma_state->dists[1];
-	}
-	if (dist_index > 0) {
-		lzma_state->dists[1] = lzma_state->dists[0];
-	}
-	lzma_state->dists[0] = dist;
-
+	lzma_state_promote_distance_at(lzma_state, dist_index);
 	lzma_encode_length(&lzma_state->probs.rep_len, enc, len);
 
 	lzma_state->position += len;
@@ -187,9 +171,9 @@ static void lzma_encode_long_rep(LZMAState* lzma_state, EncoderInterface* enc, u
 
 void lzma_encode_packet(LZMAState* lzma_state, EncoderInterface* enc, LZMAPacket packet)
 {
-	int type = UNPACK_TYPE(packet.meta);
-	int dist = UNPACK_DIST(packet.match);
-	int len = UNPACK_LEN(packet.match);
+	unsigned type = UNPACK_TYPE(packet.meta);
+	unsigned dist = UNPACK_DIST(packet.match);
+	unsigned len = UNPACK_LEN(packet.match);
 	switch (type) {
 		case LITERAL:
 			lzma_encode_literal(lzma_state, enc);

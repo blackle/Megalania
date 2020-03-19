@@ -24,7 +24,6 @@ void lzma_state_init(LZMAState* lzma_state, const uint8_t* data, size_t data_siz
 	lzma_state->position = 0;
 }
 
-
 void lzma_state_update_ctx_state(LZMAState* lzma_state, int packet_type)
 {
 	uint8_t ctx_state = lzma_state->ctx_state;
@@ -53,4 +52,28 @@ void lzma_state_update_ctx_state(LZMAState* lzma_state, int packet_type)
 			break;
 	}
 	lzma_state->ctx_state = ctx_state;
+}
+
+void lzma_state_push_distance(LZMAState* lzma_state, uint32_t dist)
+{
+	lzma_state->dists[3] = lzma_state->dists[2];
+	lzma_state->dists[2] = lzma_state->dists[1];
+	lzma_state->dists[1] = lzma_state->dists[0];
+	lzma_state->dists[0] = dist;
+}
+
+void lzma_state_promote_distance_at(LZMAState* lzma_state, unsigned dist_index)
+{
+	//todo: assert dist_index < 4
+	uint32_t dist = lzma_state->dists[dist_index];
+	if (dist_index > 2) {
+		lzma_state->dists[3] = lzma_state->dists[2];
+	}
+	if (dist_index > 1) {
+		lzma_state->dists[2] = lzma_state->dists[1];
+	}
+	if (dist_index > 0) {
+		lzma_state->dists[1] = lzma_state->dists[0];
+	}
+	lzma_state->dists[0] = dist;
 }
