@@ -29,12 +29,12 @@ static void lzma_encode_packet_header(LZMAState* lzma_state, EncoderInterface* e
 
 	encode_bit(head->b3, &ctx_probs->is_rep_g0[ctx_state], enc);
 	if (head->b3) {
-		encode_bit(head->b4, &ctx_probs->is_rep0_long[ctx_pos_state], enc);
-	} else {
 		encode_bit(head->b4, &ctx_probs->is_rep_g1[ctx_state], enc);
 		if (head->b4) {
-			encode_bit(head->b5, &ctx_probs->is_rep_g0[ctx_state], enc);
+			encode_bit(head->b5, &ctx_probs->is_rep_g2[ctx_state], enc);
 		}
+	} else {
+		encode_bit(head->b4, &ctx_probs->is_rep0_long[ctx_pos_state], enc);
 	}
 }
 

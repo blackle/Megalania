@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define TOP_VALUE (1 << 24)
+#define TOP_MASK ~((1 << 24) - 1)
 
 typedef struct {
 	int fd;
@@ -39,11 +40,11 @@ static void range_encoder_flush_data(EncoderInterface* enc)
 	}
 }
 
-#define TOP_MASK ~((1 << 24) - 1)
-
 static void range_encoder_encode_bit(EncoderInterface* enc, bool bit, Prob prob)
 {
 	RangeEncoderData* data = (RangeEncoderData*)enc->private_data;
+	//todo: make this a debug option..?
+	// fprintf(stderr, "bit: %d %d %u\n", bit, prob, data->range);
 
 	uint32_t new_bound = (data->range >> NUM_BIT_MODEL_TOTAL_BITS) * prob;
 	if (bit) {
@@ -58,6 +59,22 @@ static void range_encoder_encode_bit(EncoderInterface* enc, bool bit, Prob prob)
 	}
 }
 
+static void range_encoder_encode_direct_bits(EncoderInterface* enc, unsigned bits, unsigned num_bits)
+{
+	RangeEncoderData* data = (RangeEncoderData*)enc->private_data;
+	do {
+		bool bit = bits & (1 << (num_bits - 1));
+		data->range >>= 1;
+		if (bit) {
+			data->low += data->range;
+		}
+		if ((data->range & TOP_MASK) == 0) {
+			data->range <<= 8;
+			range_encoder_shift_low(enc);
+		}
+	} while (--num_bits);
+}
+
 void range_encoder_new(EncoderInterface* enc, int fd)
 {
 	RangeEncoderData* data = malloc(sizeof(RangeEncoderData));
@@ -68,6 +85,7 @@ void range_encoder_new(EncoderInterface* enc, int fd)
 	data->cache_size = 1;
 
 	enc->encode_bit = range_encoder_encode_bit;
+	enc->encode_direct_bits = range_encoder_encode_direct_bits;
 	enc->private_data = (void*)data;
 }
 

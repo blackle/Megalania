@@ -16,10 +16,7 @@ void encode_bit(bool bit, Prob* prob, EncoderInterface* enc)
 
 void encode_direct_bits(unsigned bits, size_t num_bits, EncoderInterface* enc)
 {
-	do {
-		bool bit = bits & (1 << (num_bits - 1));
-		(*enc->encode_bit)(enc, bit, PROB_INIT_VAL);
-	} while (--num_bits);
+	(*enc->encode_direct_bits)(enc, bits, num_bits);
 }
 
 void encode_bit_tree(unsigned bits, Prob* probs, size_t num_bits, EncoderInterface* enc)
