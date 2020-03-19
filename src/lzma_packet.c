@@ -1,14 +1,14 @@
 #include "lzma_packet.h"
 
-LZMAPacket literal_packet(int parent, uint8_t literal)
+LZMAPacket literal_packet(int parent)
 {
-	LZMAPacket packet = { .meta = PACK_META(parent, LITERAL), .data = { .lit = literal } };
+	LZMAPacket packet = { .meta = PACK_META(parent, LITERAL) };
 	return packet;
 }
 
 LZMAPacket match_packet(int parent, unsigned int dist, unsigned int len)
 {
-	LZMAPacket packet = { .meta = PACK_META(parent, MATCH), .data = { .match = PACK_MATCH(dist, len) } };
+	LZMAPacket packet = { .meta = PACK_META(parent, MATCH), .match = PACK_MATCH(dist, len) };
 	return packet;
 }
 

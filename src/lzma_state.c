@@ -44,10 +44,7 @@ void lzma_state_update_ctx_state(LZMAState* lzma_state, int packet_type)
 		case SHORT_REP:
 			ctx_state = ctx_state < 7 ? 9 : 11;
 			break;
-		case LONG_REP_0:
-		case LONG_REP_1:
-		case LONG_REP_2:
-		case LONG_REP_3:
+		case LONG_REP:
 			ctx_state = ctx_state < 7 ? 8 : 11;
 			break;
 		case INVALID:
