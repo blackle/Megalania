@@ -50,10 +50,12 @@ int main(int argc, char** argv) {
 	}
 	PacketEnumerator* packet_enumerator = packet_enumerator_new(file_data, file_size);
 
+	float total_perplexity = 0.f;
 	while (state.position < file_size) {
 		GreedyCompressor greedy;
-		greedy_compressor_new(&greedy, &state);
+		greedy_compressor_new(&greedy, &state, total_perplexity);
 		packet_enumerator_callback(packet_enumerator, &state, greedy_compressor_packet_callback, &greedy);
+		total_perplexity = greedy.best_perplexity;
 		//todo: make this a debug option?
 		// unsigned packetlen = UNPACK_LEN(greedy.best_packet.match);
 		// size_t oldpos = state.position;
