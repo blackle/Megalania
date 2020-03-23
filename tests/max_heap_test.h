@@ -1,3 +1,3 @@
 #pragma once
 
-int max_heap_test();
+void max_heap_test();
