@@ -1,5 +1,4 @@
 #include "perplexity_encoder.h"
-#include <math.h>
 
 //https://stackoverflow.com/a/28730362
 static float mFast_Log2(float val) {

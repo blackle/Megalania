@@ -81,17 +81,21 @@ static bool max_heap_right_child(MaxHeap* heap, size_t index, size_t* right_chil
 
 static void max_heap_bubble_down(MaxHeap* heap, size_t parent)
 {
+	MaxHeapComparator cmp = heap->comparator;
+	void* cmp_dat = heap->comparator_data;
+
 	size_t left_child;
 	size_t right_child;
+	//this could be `while(max_heap_has_children)` but this is equivalent to having a left child
 	while (max_heap_left_child(heap, parent, &left_child)) {
 		size_t largest_child = left_child;
 		if (max_heap_right_child(heap, parent, &right_child)) {
-			if ((*heap->comparator)(heap->comparator_data, heap->store[right_child], heap->store[left_child]) > 0) {
+			if ((*cmp)(cmp_dat, heap->store[right_child], heap->store[left_child]) > 0) {
 				largest_child = right_child;
 			}
 		}
 
-		if ((*heap->comparator)(heap->comparator_data, heap->store[largest_child], heap->store[parent]) > 0) {
+		if ((*cmp)(cmp_dat, heap->store[largest_child], heap->store[parent]) > 0) {
 			swap(&heap->store[largest_child], &heap->store[parent]);
 			parent = largest_child;
 		} else {
@@ -102,9 +106,12 @@ static void max_heap_bubble_down(MaxHeap* heap, size_t parent)
 
 static void max_heap_bubble_up(MaxHeap* heap, size_t node)
 {
+	MaxHeapComparator cmp = heap->comparator;
+	void* cmp_dat = heap->comparator_data;
+
 	size_t parent;
 	while (max_heap_parent(heap, node, &parent)) {
-		if ((*heap->comparator)(heap->comparator_data, heap->store[node], heap->store[parent]) > 0) {
+		if ((*cmp)(cmp_dat, heap->store[node], heap->store[parent]) > 0) {
 			swap(&heap->store[node], &heap->store[parent]);
 			node = parent;
 		} else {
