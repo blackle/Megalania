@@ -1,5 +1,5 @@
-#include "min_max_heap_test.h"
-#include "../src/min_max_heap.h"
+#include "max_heap_test.h"
+#include "../src/max_heap.h"
 #include "test_util.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,12 +37,12 @@ static void print_data(unsigned* data, size_t data_size)
 	}
 }
 
-int min_max_heap_test()
+int max_heap_test()
 {
 	PRETTY_PRINT_TEST_NAME();
 
 	size_t heap_size = 10;
-	MinMaxHeap* heap = min_max_heap_new(heap_size, plain_comparator, NULL);
+	MaxHeap* heap = max_heap_new(heap_size, plain_comparator, NULL);
 
 	unsigned data[heap_size];
 	initialize_random_data(data, heap_size, 666);
@@ -52,11 +52,11 @@ int min_max_heap_test()
 	printf("\n");
 
 	for (size_t i = 0; i < heap_size; i++) {
-		min_max_heap_insert(heap, data[i]);
+		max_heap_insert(heap, data[i]);
 	}
 
-	TEST_ASSERT_EQ(min_max_heap_count(heap), heap_size, "Heap wrong size! expected: %ld, got %ld");
+	TEST_ASSERT_EQ(max_heap_count(heap), heap_size, "Heap wrong size! expected: %ld, got %ld");
 
-	min_max_heap_free(heap);
+	max_heap_free(heap);
 	return 0;
 }
