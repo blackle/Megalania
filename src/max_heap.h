@@ -10,11 +10,9 @@ MaxHeap* max_heap_new(size_t size, MaxHeapComparator comparator, void* comparato
 void max_heap_free(MaxHeap* heap);
 
 size_t max_heap_count(const MaxHeap* heap);
+void max_heap_clear(MaxHeap* heap);
 
 bool max_heap_insert(MaxHeap* heap, unsigned value);
-
-bool max_heap_minimum(MaxHeap* heap, unsigned* value);
 bool max_heap_maximum(MaxHeap* heap, unsigned* value);
-
-bool max_heap_remove_minimum(MaxHeap* heap);
 bool max_heap_remove_maximum(MaxHeap* heap);
+bool max_heap_update_maximum(MaxHeap* heap);

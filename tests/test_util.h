@@ -19,7 +19,7 @@
 	typeof(got) __GOT_STOR = got; \
 	typeof(expect) __EXPECT_STOR = expect; \
 	if(__GOT_STOR != __EXPECT_STOR) { \
-		fprintf(stderr, msg, __GOT_STOR, __EXPECT_STOR); \
+		fprintf(stderr, msg, __EXPECT_STOR, __GOT_STOR); \
 		fprintf(stderr, "\n"); \
 		return -1; \
 	} \

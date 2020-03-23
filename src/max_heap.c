@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define PARENT_INDEX(x) ((x-1)/2)
+#define LEFT_INDEX(x) (x*2+1)
+#define RIGHT_INDEX(x) (x*2+2)
+
 struct MaxHeap_struct {
 	unsigned* store;
 	size_t store_size;
@@ -44,34 +48,113 @@ size_t max_heap_count(const MaxHeap* heap)
 	return heap->count;
 }
 
-bool max_heap_insert(MaxHeap* heap, unsigned value)
+void max_heap_clear(MaxHeap* heap)
 {
-	(void)heap;(void)value;
-	return false;
+	heap->count = 0;
 }
 
-bool max_heap_minimum(MaxHeap* heap, unsigned* value)
+static void swap(unsigned *a, unsigned *b)
 {
-	(void)heap;(void)value;
-	return false;
+	unsigned temp = *a;
+	*a = *b;
+	*b = temp;
+}
 
+static bool max_heap_parent(MaxHeap* heap, size_t index, size_t* parent)
+{
+	(void) heap;
+	*parent = (index-1)/2;
+	return index > 0;
+}
+
+static bool max_heap_left_child(MaxHeap* heap, size_t index, size_t* left_child)
+{
+	*left_child = index*2 + 1;
+	return *left_child < heap->count;
+}
+
+static bool max_heap_right_child(MaxHeap* heap, size_t index, size_t* right_child)
+{
+	*right_child = index*2 + 2;
+	return *right_child < heap->count;
+}
+
+static void max_heap_bubble_down(MaxHeap* heap, size_t parent)
+{
+	size_t left_child;
+	size_t right_child;
+	while (max_heap_left_child(heap, parent, &left_child)) {
+		size_t largest_child = left_child;
+		if (max_heap_right_child(heap, parent, &right_child)) {
+			if ((*heap->comparator)(heap->comparator_data, heap->store[right_child], heap->store[left_child]) > 0) {
+				largest_child = right_child;
+			}
+		}
+
+		if ((*heap->comparator)(heap->comparator_data, heap->store[largest_child], heap->store[parent]) > 0) {
+			swap(&heap->store[largest_child], &heap->store[parent]);
+			parent = largest_child;
+		} else {
+			break;
+		}
+	}
+}
+
+static void max_heap_bubble_up(MaxHeap* heap, size_t node)
+{
+	size_t parent;
+	while (max_heap_parent(heap, node, &parent)) {
+		if ((*heap->comparator)(heap->comparator_data, heap->store[node], heap->store[parent]) > 0) {
+			swap(&heap->store[node], &heap->store[parent]);
+			node = parent;
+		} else {
+			break;
+		}
+	}
+}
+
+bool max_heap_insert(MaxHeap* heap, unsigned value)
+{
+	if (heap->count == heap->store_size) {
+		return false;
+	}
+
+	size_t new_node = heap->count++;
+	heap->store[new_node] = value;
+	max_heap_bubble_up(heap, new_node);
+
+	return true;
 }
 
 bool max_heap_maximum(MaxHeap* heap, unsigned* value)
 {
-	(void)heap;(void)value;
-	return false;
+	if (heap->count == 0) {
+		return false;
+	}
 
-}
-
-bool max_heap_remove_minimum(MaxHeap* heap)
-{
-	(void)heap;
-	return false;
+	*value = heap->store[0];
+	return true;
 }
 
 bool max_heap_remove_maximum(MaxHeap* heap)
 {
-	(void)heap;
-	return false;
+	if (heap->count == 0) {
+		return false;
+	}
+
+	heap->store[0] = heap->store[--heap->count];
+	max_heap_bubble_down(heap, 0);
+
+	return true;
+}
+
+bool max_heap_update_maximum(MaxHeap* heap)
+{
+	if (heap->count == 0) {
+		return false;
+	}
+
+	max_heap_bubble_down(heap, 0);
+
+	return true;
 }
