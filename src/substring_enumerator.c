@@ -97,7 +97,7 @@ void substring_enumerator_callback(const SubstringEnumerator* em, size_t pos, Su
 		// if (position + dictionary_length < pos) continue; //todo: this is supposed to be dictionary size
 		if (position >= pos) break;
 		callback(user_data, position, 2);
-		for (size_t j = 2; j <= em->max_length && j + pos < em->data_size; j++) {
+		for (size_t j = 2; j < em->max_length && j + pos < em->data_size; j++) {
 			if (em->data[pos+j] != em->data[position+j]) break;
 			callback(user_data, position, 1+j);
 		}

@@ -48,6 +48,27 @@ static void substring_enumerator_hello_hello_test()
 		TEST_ASSERT_EQ(callback_data.substring_count, expected_substrings[i], "Unexpected number of substrings! expected: %d, got: %d");
 	}
 
+	substring_enumerator_free(enumerator);
+}
+
+static void substring_enumerator_hello_hello_max_substring_test()
+{
+	PRETTY_PRINT_SUB_TEST_NAME();
+	size_t data_size = 11;
+	uint8_t data[11] = {'h', 'e', 'l', 'l', 'o', ' ', 'h', 'e', 'l', 'l', 'o'};
+	unsigned expected_substrings[11] = {0, 0, 0, 0, 0, 0, 2, 2, 2, 1, 0};
+
+	SubstringEnumerator* enumerator = substring_enumerator_new(data, data_size, MIN_SUBSTRING, 3);
+
+	HelloSubstringCallbackData callback_data;
+	callback_data.data = data;
+	callback_data.data_size = data_size;
+	for (size_t i = 0; i < data_size; i++) {
+		callback_data.offset = i;
+		callback_data.substring_count = 0;
+		substring_enumerator_callback(enumerator, i, hello_substring_callback, &callback_data);
+		TEST_ASSERT_EQ(callback_data.substring_count, expected_substrings[i], "Unexpected number of substrings! expected: %d, got: %d");
+	}
 
 	substring_enumerator_free(enumerator);
 }
@@ -80,5 +101,6 @@ void substring_enumerator_test()
 	PRETTY_PRINT_TEST_NAME();
 
 	substring_enumerator_hello_hello_test();
+	substring_enumerator_hello_hello_max_substring_test();
 	substring_enumerator_aa_bb_cc_test();
 }
