@@ -33,6 +33,7 @@ void packet_enumerator_free(PacketEnumerator* enumerator)
 
 typedef struct {
 	const LZMAState* lzma_state;
+	unsigned parent;
 	PacketEnumeratorCallback callback;
 	void* user_data;
 } PacketEnumeratorSubstringCallbackData;
@@ -41,34 +42,36 @@ static void packet_enumerator_substring_callback(void* user_data, size_t offset,
 {
 	PacketEnumeratorSubstringCallbackData* data = (PacketEnumeratorSubstringCallbackData*)user_data;
 	const LZMAState* lzma_state = data->lzma_state;
+	unsigned parent = data->parent;
 	PacketEnumeratorCallback callback = data->callback;
 	void* callback_user_data = data->user_data;
 
 	unsigned dist = lzma_state->position - offset - 1;
-	(*callback)(callback_user_data, match_packet(0, dist, length));
+	(*callback)(callback_user_data, match_packet(parent, dist, length));
 	for (int i = 0; i < 4; i++) {
 		if (dist == lzma_state->dists[i]) {
-			(*callback)(callback_user_data, long_rep_packet(0, i, length));
+			(*callback)(callback_user_data, long_rep_packet(parent, i, length));
 		}
 	}
 }
 
-void packet_enumerator_callback(const PacketEnumerator* enumerator, const LZMAState* lzma_state, PacketEnumeratorCallback callback, void* user_data) {
+void packet_enumerator_callback(const PacketEnumerator* enumerator, const LZMAState* lzma_state, unsigned parent, PacketEnumeratorCallback callback, void* user_data) {
 	if (enumerator->data != lzma_state->data) {
 		//todo: error messaging... assert?
 		return;
 	}
 
-	(*callback)(user_data, literal_packet(0));
+	(*callback)(user_data, literal_packet(parent));
 	if (lzma_state->position > 0) {
 		size_t rep0_position = lzma_state->position - lzma_state->dists[0] - 1;
 		if (enumerator->data[lzma_state->position] == enumerator->data[rep0_position]) {
-			(*callback)(user_data, short_rep_packet(0));
+			(*callback)(user_data, short_rep_packet(parent));
 		}
 	}
 
 	PacketEnumeratorSubstringCallbackData data = {
 		.lzma_state = lzma_state,
+		.parent = parent,
 		.callback = callback,
 		.user_data = user_data
 	};

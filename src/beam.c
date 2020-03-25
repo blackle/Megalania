@@ -78,7 +78,7 @@ void beam_insert(Beam* beam, const BeamEntry* entry)
 	//otherwise, we must compare with the maximum and replace if needed
 	unsigned maximum;
 	max_heap_maximum(beam->heap, &maximum); //todo: assert?
-	if (entry->compression_ratio < beam->entries[maximum].compression_ratio) {
+	if (entry->compression_ratio <= beam->entries[maximum].compression_ratio) {
 		memcpy(&beam->entries[maximum], entry, sizeof(BeamEntry));
 		max_heap_update_maximum(beam->heap);
 	}
