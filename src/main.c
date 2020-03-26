@@ -45,10 +45,12 @@ static void beam_search_packet_callback(void* user_data, LZMAPacket packet)
 	memcpy(&entry, parent_entry, sizeof(BeamEntry));
 	entry.packet = packet;
 
+	float perplexity = 0.f;
 	EncoderInterface perplexity_encoder;
-	perplexity_encoder_new(&perplexity_encoder, &entry.perplexity);
+	perplexity_encoder_new(&perplexity_encoder, &perplexity);
 	lzma_encode_packet(&entry.lzma_state, &perplexity_encoder, entry.packet);
-	entry.compression_ratio = entry.perplexity/entry.lzma_state.position;
+	entry.perplexity += perplexity;
+	entry.compression_ratio = perplexity/UNPACK_LEN(packet.match)*0.5f + entry.perplexity/entry.lzma_state.position;
 	beam_insert(beam, &entry);
 }
 
@@ -82,7 +84,7 @@ int main(int argc, char** argv) {
 	}
 	PacketEnumerator* packet_enumerator = packet_enumerator_new(file_data, file_size);
 
-	size_t beam_size = 25;
+	size_t beam_size = 100;
 	Beam* current_beam = beam_new(beam_size);
 	Beam* next_beam = beam_new(beam_size);
 	BeamPacketHistory* history = beam_packet_history_new(file_size, beam_size);

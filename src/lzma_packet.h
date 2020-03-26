@@ -13,7 +13,7 @@
 #define UNPACK_PARENT(meta) (meta / NUM_TYPES)
 #define UNPACK_TYPE(meta) (meta % NUM_TYPES)
 
-#define NUM_LENS 238
+#define NUM_LENS 274
 #define PACK_MATCH(dist, len) ((dist * NUM_LENS) + (len % NUM_LENS))
 #define UNPACK_DIST(match) (match / NUM_LENS)
 #define UNPACK_LEN(match) (match % NUM_LENS)
