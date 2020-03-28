@@ -24,7 +24,7 @@ void lzma_state_init(LZMAState* lzma_state, const uint8_t* data, size_t data_siz
 	lzma_state->position = 0;
 }
 
-void lzma_state_update_ctx_state(LZMAState* lzma_state, int packet_type)
+void lzma_state_update_ctx_state(LZMAState* lzma_state, unsigned packet_type)
 {
 	uint8_t ctx_state = lzma_state->ctx_state;
 	switch (packet_type) {

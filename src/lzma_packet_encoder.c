@@ -167,9 +167,9 @@ static void lzma_encode_long_rep(LZMAState* lzma_state, EncoderInterface* enc, u
 
 void lzma_encode_packet(LZMAState* lzma_state, EncoderInterface* enc, LZMAPacket packet)
 {
-	unsigned type = UNPACK_TYPE(packet.meta);
-	unsigned dist = UNPACK_DIST(packet.match);
-	unsigned len = UNPACK_LEN(packet.match);
+	unsigned type = packet.type;
+	unsigned len = packet.len;
+	unsigned dist = packet.dist;
 	switch (type) {
 		case LITERAL:
 			lzma_encode_literal(lzma_state, enc);
