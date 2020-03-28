@@ -23,7 +23,7 @@ size_t substring_enumerator_memory_usage(size_t data_size)
 	return sizeof(size_t) * data_size + sizeof(SubstringEnumerator);
 }
 
-void memoize_bigram_positions(SubstringEnumerator* em)
+static void memoize_bigram_positions(SubstringEnumerator* em)
 {
 	const uint8_t* data = em->data;
 	size_t data_size = em->data_size;

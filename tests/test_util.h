@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #define PRETTY_PRINT_TEST_NAME() \
 { \
@@ -17,7 +18,7 @@
 		fprintf(stderr, "ERROR: "); \
 		fprintf(stderr, msg); \
 		fprintf(stderr, "\n"); \
-		exit(-1); \
+		assert(0); \
 	} \
 }
 
@@ -29,6 +30,6 @@
 		fprintf(stderr, "ERROR: "); \
 		fprintf(stderr, msg, __EXPECT_STOR, __GOT_STOR); \
 		fprintf(stderr, "\n"); \
-		exit(-1); \
+		assert(0); \
 	} \
 }
