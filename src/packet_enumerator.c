@@ -53,7 +53,7 @@ static void packet_enumerator_substring_callback(void* user_data, size_t offset,
 	}
 }
 
-void packet_enumerator_callback(const PacketEnumerator* enumerator, const LZMAState* lzma_state, PacketEnumeratorCallback callback, void* user_data) {
+void packet_enumerator_for_each(const PacketEnumerator* enumerator, const LZMAState* lzma_state, PacketEnumeratorCallback callback, void* user_data) {
 	if (enumerator->data != lzma_state->data) {
 		//todo: error messaging... assert?
 		return;
@@ -72,5 +72,5 @@ void packet_enumerator_callback(const PacketEnumerator* enumerator, const LZMASt
 		.callback = callback,
 		.user_data = user_data
 	};
-	substring_enumerator_callback(enumerator->substring_enumerator, lzma_state->position, packet_enumerator_substring_callback, &data);
+	substring_enumerator_for_each(enumerator->substring_enumerator, lzma_state->position, packet_enumerator_substring_callback, &data);
 }

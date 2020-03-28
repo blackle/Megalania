@@ -82,7 +82,7 @@ void substring_enumerator_free(SubstringEnumerator* enumerator)
 	free(enumerator);
 }
 
-void substring_enumerator_callback(const SubstringEnumerator* em, size_t pos, SubstringEnumeratorCallback callback, void* user_data)
+void substring_enumerator_for_each(const SubstringEnumerator* em, size_t pos, SubstringEnumeratorCallback callback, void* user_data)
 {
 	if (pos == 0) return;
 	if (pos == em->data_size - 1) return;

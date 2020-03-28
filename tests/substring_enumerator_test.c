@@ -44,7 +44,7 @@ static void substring_enumerator_hello_hello_test()
 	for (size_t i = 0; i < data_size; i++) {
 		callback_data.offset = i;
 		callback_data.substring_count = 0;
-		substring_enumerator_callback(enumerator, i, hello_substring_callback, &callback_data);
+		substring_enumerator_for_each(enumerator, i, hello_substring_callback, &callback_data);
 		TEST_ASSERT_EQ(callback_data.substring_count, expected_substrings[i], "Unexpected number of substrings! expected: %d, got: %d");
 	}
 
@@ -66,7 +66,7 @@ static void substring_enumerator_hello_hello_max_substring_test()
 	for (size_t i = 0; i < data_size; i++) {
 		callback_data.offset = i;
 		callback_data.substring_count = 0;
-		substring_enumerator_callback(enumerator, i, hello_substring_callback, &callback_data);
+		substring_enumerator_for_each(enumerator, i, hello_substring_callback, &callback_data);
 		TEST_ASSERT_EQ(callback_data.substring_count, expected_substrings[i], "Unexpected number of substrings! expected: %d, got: %d");
 	}
 
@@ -90,7 +90,7 @@ static void substring_enumerator_aa_bb_cc_test()
 	SubstringEnumerator* enumerator = substring_enumerator_new(data, data_size, MIN_SUBSTRING, MAX_SUBSTRING);
 
 	for (size_t i = 0; i < data_size; i++) {
-		substring_enumerator_callback(enumerator, i, no_substring_callback, NULL);
+		substring_enumerator_for_each(enumerator, i, no_substring_callback, NULL);
 	}
 
 	substring_enumerator_free(enumerator);
