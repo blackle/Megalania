@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 	lzma_state_init(&state, file_data, file_size);
 	EncoderInterface enc;
 	range_encoder_new(&enc, 1);
-	for (size_t i = 0; i < file_size; i++) {
+	while (state.position < file_size) {
 		lzma_encode_packet(&state, &enc, literal_packet());
 	}
 	range_encoder_free(&enc);
