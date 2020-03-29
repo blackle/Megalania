@@ -43,14 +43,16 @@ int main(int argc, char** argv) {
 	PacketSlab* packet_slab = packet_slab_new(file_size);
 	PacketSlabNeighbour neighbour;
 	float best_perplexity = -1.f;
-	for (int i = 0; i < 1000000; i++) {
+	srand(6666);
+	int max_iters = 1000000;
+	for (int i = 0; i < max_iters; i++) {
 		// fprintf(stderr, "generating...\n");
 		packet_slab_neighbour_new(&neighbour, packet_slab, file_data, file_size);
 		packet_slab_neighbour_generate(&neighbour, packet_finder);
 
 		if (best_perplexity < 0.f || neighbour.perplexity < best_perplexity) {
 			best_perplexity = neighbour.perplexity;
-			fprintf(stderr, "new best perplexity: %f\n", best_perplexity/8.f);
+			fprintf(stderr, "new best perplexity: %f\tat: %.1f%%\n", best_perplexity/8.f, ((float)i)/max_iters*100);
 		} else {
 			packet_slab_neighbour_undo(&neighbour);
 		}
