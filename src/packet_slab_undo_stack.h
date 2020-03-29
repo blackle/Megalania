@@ -22,5 +22,6 @@ typedef struct {
 
 void packet_slab_undo_stack_new(PacketSlabUndoStack* undo_stack);
 void packet_slab_undo_stack_free(PacketSlabUndoStack* undo_stack);
+
 void packet_slab_undo_stack_insert(PacketSlabUndoStack* undo_stack, PacketSlabUndo undo);
 void packet_slab_undo_stack_apply(PacketSlabUndoStack* undo_stack, PacketSlab* slab);

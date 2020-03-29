@@ -10,4 +10,5 @@ PacketSlab* packet_slab_new(size_t data_size);
 void packet_slab_free(PacketSlab* slab);
 
 size_t packet_slab_size(const PacketSlab* slab);
+size_t packet_slab_count(const PacketSlab* slab);
 LZMAPacket* packet_slab_packets(PacketSlab* slab);

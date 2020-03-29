@@ -49,6 +49,7 @@ void packet_slab_undo_stack_new(PacketSlabUndoStack* undo_stack)
 
 void packet_slab_undo_stack_free(PacketSlabUndoStack* undo_stack)
 {
+	undo_stack->count = 0;
 	while (undo_stack->last != NULL) {
 		PacketSlabUndoHeap* undo_heap = undo_stack->last;
 		undo_stack->last = undo_heap->prev;

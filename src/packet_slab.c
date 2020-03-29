@@ -45,6 +45,17 @@ size_t packet_slab_size(const PacketSlab* slab)
 	return slab->data_size;
 }
 
+size_t packet_slab_count(const PacketSlab* slab)
+{
+	size_t position = 0;
+	size_t count = 0;
+	while (position < slab->data_size) {
+		count++;
+		position += slab->packets[position].len;
+	}
+	return count;
+}
+
 LZMAPacket* packet_slab_packets(PacketSlab* slab)
 {
 	return slab->packets;

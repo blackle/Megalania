@@ -30,6 +30,7 @@ static void packet_slab_undo_stack_test_apply()
 	for (size_t i = 0; i < SLAB_SIZE; i++) {
 		TEST_ASSERT_EQ(packets[i].type, LITERAL, "Packet edit was not undone! expected: %d, got %d");
 	}
+	TEST_ASSERT_EQ(undo_stack.count, 0u, "Undo_stack count non-zero! expected: %d, got: %ld");
 
 	fprintf(stderr, "freeing memory...\n");
 	packet_slab_undo_stack_free(&undo_stack);
