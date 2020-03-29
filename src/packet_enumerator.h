@@ -3,7 +3,7 @@
 #include "lzma_packet.h"
 
 typedef struct PacketEnumerator_struct PacketEnumerator;
-typedef void (*PacketEnumeratorCallback)(void* user_data, LZMAPacket packet);
+typedef void (*PacketEnumeratorCallback)(void* user_data, const LZMAState* state, LZMAPacket packet);
 
 size_t packet_enumerator_memory_usage(size_t data_size);
 

@@ -11,7 +11,10 @@
 #include "range_encoder.h"
 #include "lzma_state.h"
 #include "lzma_packet_encoder.h"
-#include "perplexity_encoder.h"
+#include "packet_enumerator.h"
+#include "packet_slab.h"
+#include "packet_slab_neighbour.h"
+#include "top_k_packet_finder.h"
 
 #define GIGABYTE 1073741824
 
@@ -34,6 +37,30 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
+
+	PacketEnumerator* packet_enumerator = packet_enumerator_new(file_data, file_size);
+	TopKPacketFinder* packet_finder = top_k_packet_finder_new(10, packet_enumerator);
+	PacketSlab* packet_slab = packet_slab_new(file_size);
+	PacketSlabNeighbour neighbour;
+	float best_perplexity = -1.f;
+	for (int i = 0; i < 1000000; i++) {
+		// fprintf(stderr, "generating...\n");
+		packet_slab_neighbour_new(&neighbour, packet_slab, file_data, file_size);
+		packet_slab_neighbour_generate(&neighbour, packet_finder);
+
+		if (best_perplexity < 0.f || neighbour.perplexity < best_perplexity) {
+			best_perplexity = neighbour.perplexity;
+			fprintf(stderr, "new best perplexity: %f\n", best_perplexity/8.f);
+		} else {
+			packet_slab_neighbour_undo(&neighbour);
+		}
+
+		packet_slab_neighbour_free(&neighbour);
+	}
+
+	top_k_packet_finder_free(packet_finder);
+	packet_enumerator_free(packet_enumerator);
+
 	//todo: encapsulate in some kind of header serializer, write the data properly
 	char props = 0;
 	uint32_t dictsize = 0x400000; //todo: peg this to file size
@@ -46,10 +73,13 @@ int main(int argc, char** argv) {
 	lzma_state_init(&state, file_data, file_size);
 	EncoderInterface enc;
 	range_encoder_new(&enc, 1);
-	while (state.position < file_size) {
-		lzma_encode_packet(&state, &enc, literal_packet());
+	LZMAPacket* packets = packet_slab_packets(packet_slab);
+	while (state.position < state.data_size) {
+		lzma_encode_packet(&state, &enc, packets[state.position]);
 	}
 	range_encoder_free(&enc);
+
+	packet_slab_free(packet_slab);
 
 	if (unmap(file_data, file_size) < 0) {
 		return -1;

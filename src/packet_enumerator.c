@@ -1,6 +1,7 @@
 #include "packet_enumerator.h"
 #include "substring_enumerator.h"
 #include <stdlib.h>
+#include <assert.h>
 
 #define MIN_SUBSTRING 2
 #define MAX_SUBSTRING 273
@@ -45,25 +46,22 @@ static void packet_enumerator_substring_callback(void* user_data, size_t offset,
 	void* callback_user_data = data->user_data;
 
 	unsigned dist = lzma_state->position - offset - 1;
-	(*callback)(callback_user_data, match_packet(dist, length));
+	(*callback)(callback_user_data, lzma_state, match_packet(dist, length));
 	for (int i = 0; i < 4; i++) {
 		if (dist == lzma_state->dists[i]) {
-			(*callback)(callback_user_data, long_rep_packet(i, length));
+			(*callback)(callback_user_data, lzma_state, long_rep_packet(i, length));
 		}
 	}
 }
 
 void packet_enumerator_for_each(const PacketEnumerator* enumerator, const LZMAState* lzma_state, PacketEnumeratorCallback callback, void* user_data) {
-	if (enumerator->data != lzma_state->data) {
-		//todo: error messaging... assert?
-		return;
-	}
+	assert(enumerator->data == lzma_state->data);
 
-	(*callback)(user_data, literal_packet());
+	(*callback)(user_data, lzma_state, literal_packet());
 	if (lzma_state->position > 0) {
 		size_t rep0_position = lzma_state->position - lzma_state->dists[0] - 1;
 		if (enumerator->data[lzma_state->position] == enumerator->data[rep0_position]) {
-			(*callback)(user_data, short_rep_packet());
+			(*callback)(user_data, lzma_state, short_rep_packet());
 		}
 	}
 
