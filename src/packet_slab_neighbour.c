@@ -4,6 +4,7 @@
 #include "perplexity_encoder.h"
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 void packet_slab_neighbour_new(PacketSlabNeighbour* neighbour, PacketSlab* slab, const uint8_t* data, size_t data_size)
 {
@@ -37,7 +38,7 @@ static void save_packet_at_position(PacketSlabNeighbour* neighbour, LZMAPacket p
 	packet_slab_undo_stack_insert(&neighbour->undo_stack, undo);
 }
 
-#define TOP_PACKET_CHANCE 4
+#define TOP_PACKET_CHANCE 2
 static void pick_random_next_packet_from_top_k(const LZMAState* lzma_state, TopKPacketFinder* packet_finder, LZMAPacket* packets)
 {
 	top_k_packet_finder_find(packet_finder, lzma_state);
@@ -47,6 +48,14 @@ static void pick_random_next_packet_from_top_k(const LZMAState* lzma_state, TopK
 			return;
 		}
 	}
+}
+
+static bool validate_long_rep_packet(const LZMAState* lzma_state, LZMAPacket packet)
+{
+	assert(packet.type == LONG_REP);
+	const uint8_t* rep_start = &lzma_state->data[lzma_state->position - lzma_state->dists[packet.dist] - 1];
+	const uint8_t* current = &lzma_state->data[lzma_state->position];
+	return memcmp(rep_start, current, packet.len) == 0;
 }
 
 static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* lzma_state, EncoderInterface* enc, TopKPacketFinder* packet_finder, LZMAPacket* packets)
@@ -61,8 +70,14 @@ static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* 
 			}
 		}
 		if (packet->type == LONG_REP) {
-			//todo: this can be better, iterate over the dists to see if any are valid
-			pick_random_next_packet_from_top_k(lzma_state, packet_finder, packets);
+			unsigned dist_index = 0;
+			while (!validate_long_rep_packet(lzma_state, *packet) && dist_index < 4) {
+				packet->dist = dist_index;
+				dist_index++;
+			}
+			if (!validate_long_rep_packet(lzma_state, *packet)) {
+				pick_random_next_packet_from_top_k(lzma_state, packet_finder, packets);
+			}
 		}
 
 		if (memcmp(&old_packet, packet, sizeof(LZMAPacket)) != 0) {
@@ -97,4 +112,9 @@ void packet_slab_neighbour_generate(PacketSlabNeighbour* neighbour, TopKPacketFi
 void packet_slab_neighbour_undo(PacketSlabNeighbour* neighbour)
 {
 	packet_slab_undo_stack_apply(&neighbour->undo_stack, neighbour->slab);
+}
+
+size_t packet_slab_neighbour_undo_count(const PacketSlabNeighbour* neighbour)
+{
+	return packet_slab_undo_stack_count(&neighbour->undo_stack);
 }

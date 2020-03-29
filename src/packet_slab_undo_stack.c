@@ -44,12 +44,14 @@ static void packet_slab_undo_heap_apply(PacketSlabUndoHeap* undo_heap, PacketSla
 void packet_slab_undo_stack_new(PacketSlabUndoStack* undo_stack)
 {
 	undo_stack->count = 0;
+	undo_stack->total_count = 0;
 	undo_stack->last = NULL;
 }
 
 void packet_slab_undo_stack_free(PacketSlabUndoStack* undo_stack)
 {
 	undo_stack->count = 0;
+	undo_stack->total_count = 0;
 	while (undo_stack->last != NULL) {
 		PacketSlabUndoHeap* undo_heap = undo_stack->last;
 		undo_stack->last = undo_heap->prev;
@@ -59,6 +61,7 @@ void packet_slab_undo_stack_free(PacketSlabUndoStack* undo_stack)
 
 void packet_slab_undo_stack_insert(PacketSlabUndoStack* undo_stack, PacketSlabUndo undo)
 {
+	undo_stack->total_count++;
 	if (undo_stack->count < UNDO_STACK_SIZE) {
 		undo_stack->stack[undo_stack->count++] = undo;
 		return;
@@ -93,4 +96,10 @@ void packet_slab_undo_stack_apply(PacketSlabUndoStack* undo_stack, PacketSlab* s
 		PacketSlabUndo undo = undo_stack->stack[--undo_stack->count];
 		packets[undo.position] = undo.old_packet;
 	}
+	undo_stack->total_count = 0;
+}
+
+size_t packet_slab_undo_stack_count(const PacketSlabUndoStack* undo_stack)
+{
+	return undo_stack->total_count;
 }

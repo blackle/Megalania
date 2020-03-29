@@ -17,3 +17,4 @@ void packet_slab_neighbour_free(PacketSlabNeighbour* neighbour);
 
 void packet_slab_neighbour_generate(PacketSlabNeighbour* neighbour, TopKPacketFinder* packet_finder);
 void packet_slab_neighbour_undo(PacketSlabNeighbour* neighbour);
+size_t packet_slab_neighbour_undo_count(const PacketSlabNeighbour* neighbour);

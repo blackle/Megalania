@@ -37,10 +37,26 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-
 	PacketEnumerator* packet_enumerator = packet_enumerator_new(file_data, file_size);
-	TopKPacketFinder* packet_finder = top_k_packet_finder_new(10, packet_enumerator);
+	TopKPacketFinder* packet_finder = top_k_packet_finder_new(5, packet_enumerator);
 	PacketSlab* packet_slab = packet_slab_new(file_size);
+	LZMAPacket* packets = packet_slab_packets(packet_slab);
+
+	{
+		fprintf(stderr, "initializing\n");
+		LZMAState lzma_state;
+		lzma_state_init(&lzma_state, file_data, file_size);
+		for (size_t i = 0; i < file_size; i++) {
+			// for (size_t j = 0; j < (NUM_STATES << NUM_POS_BITS_MAX); j++) {
+			// 	lzma_state.probs.ctx_state.is_match[j] = 1600;
+			// }
+			lzma_state.position = i;
+			top_k_packet_finder_find(packet_finder, &lzma_state);
+			top_k_packet_finder_pop(packet_finder, &packets[i]);
+		}
+		fprintf(stderr, "done!\n");
+	}
+
 	PacketSlabNeighbour neighbour;
 	float best_perplexity = -1.f;
 	srand(6666);
@@ -75,7 +91,6 @@ int main(int argc, char** argv) {
 	lzma_state_init(&state, file_data, file_size);
 	EncoderInterface enc;
 	range_encoder_new(&enc, 1);
-	LZMAPacket* packets = packet_slab_packets(packet_slab);
 	while (state.position < state.data_size) {
 		lzma_encode_packet(&state, &enc, packets[state.position]);
 	}

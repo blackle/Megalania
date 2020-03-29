@@ -13,8 +13,9 @@ typedef struct {
 
 typedef struct PacketSlabUndoHeap_struct PacketSlabUndoHeap;
 
-#define UNDO_STACK_SIZE 32
+#define UNDO_STACK_SIZE 8
 typedef struct {
+	size_t total_count;
 	size_t count;
 	PacketSlabUndo stack[UNDO_STACK_SIZE];
 	PacketSlabUndoHeap* last;
@@ -25,3 +26,4 @@ void packet_slab_undo_stack_free(PacketSlabUndoStack* undo_stack);
 
 void packet_slab_undo_stack_insert(PacketSlabUndoStack* undo_stack, PacketSlabUndo undo);
 void packet_slab_undo_stack_apply(PacketSlabUndoStack* undo_stack, PacketSlab* slab);
+size_t packet_slab_undo_stack_count(const PacketSlabUndoStack* undo_stack);
