@@ -58,6 +58,11 @@ static bool validate_long_rep_packet(const LZMAState* lzma_state, LZMAPacket pac
 	return memcmp(rep_start, current, packet.len) == 0;
 }
 
+static bool compare_packets(const LZMAPacket* a, const LZMAPacket* b)
+{
+	return a->type == b->type && a->len == b->len && a->dist == b->dist;
+}
+
 static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* lzma_state, EncoderInterface* enc, TopKPacketFinder* packet_finder, LZMAPacket* packets)
 {
 	while (lzma_state->position < lzma_state->data_size) {
@@ -80,7 +85,7 @@ static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* 
 			}
 		}
 
-		if (memcmp(&old_packet, packet, sizeof(LZMAPacket)) != 0) {
+		if (!compare_packets(&old_packet, packet)) {
 			save_packet_at_position(neighbour, old_packet, lzma_state->position);
 		}
 

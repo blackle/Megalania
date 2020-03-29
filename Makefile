@@ -9,7 +9,7 @@ TEST_PROJECT := $(PROJECT)_tests
 all : $(PROJECT) $(TEST_PROJECT)
 
 $(PROJECT) : $(HEADERS) $(SOURCES) Makefile
-	gcc -o $(PROJECT) $(SOURCES) -lm -g -Wall -Werror -Wextra -O3 -flto
+	gcc -o $(PROJECT) $(SOURCES) -lm -g -Wall -Werror -Wextra -O0 -flto
 
 $(TEST_PROJECT) : $(TEST_HEADERS) $(TEST_SOURCES) Makefile
 	gcc -o $(TEST_PROJECT) $(TEST_SOURCES) -lm -g -Wall -Werror -Wextra -O0 -flto

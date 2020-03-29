@@ -42,25 +42,10 @@ int main(int argc, char** argv) {
 	PacketSlab* packet_slab = packet_slab_new(file_size);
 	LZMAPacket* packets = packet_slab_packets(packet_slab);
 
-	// {
-	// 	fprintf(stderr, "initializing\n");
-	// 	LZMAState lzma_state;
-	// 	lzma_state_init(&lzma_state, file_data, file_size);
-	// 	for (size_t i = 0; i < file_size; i++) {
-	// 		// for (size_t j = 0; j < (NUM_STATES << NUM_POS_BITS_MAX); j++) {
-	// 		// 	lzma_state.probs.ctx_state.is_match[j] = 1600;
-	// 		// }
-	// 		lzma_state.position = i;
-	// 		top_k_packet_finder_find(packet_finder, &lzma_state);
-	// 		top_k_packet_finder_pop(packet_finder, &packets[i]);
-	// 	}
-	// 	fprintf(stderr, "done!\n");
-	// }
-
 	PacketSlabNeighbour neighbour;
 	uint64_t best_perplexity = 0;
-	srand(6666);
-	int max_iters = 1000000;
+	srand(147351);
+	int max_iters = 5000;
 	for (int i = 0; i < max_iters; i++) {
 		// fprintf(stderr, "generating...\n");
 		packet_slab_neighbour_new(&neighbour, packet_slab, file_data, file_size);
