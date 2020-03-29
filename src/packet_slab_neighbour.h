@@ -8,7 +8,7 @@ typedef struct {
 	size_t data_size;
 	PacketSlab* slab;
 
-	float perplexity;
+	uint64_t perplexity;
 	PacketSlabUndoStack undo_stack;
 } PacketSlabNeighbour;
 

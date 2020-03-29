@@ -93,7 +93,7 @@ static void top_k_packet_finder_callback(void* user_data, const LZMAState* state
 
 	LZMAState new_state = *state;
 	EncoderInterface enc;
-	float perplexity = 1.f;
+	uint64_t perplexity = 0;
 	perplexity_encoder_new(&enc, &perplexity);
 	lzma_encode_packet(&new_state, &enc, packet);
 

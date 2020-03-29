@@ -11,7 +11,7 @@ void packet_slab_neighbour_new(PacketSlabNeighbour* neighbour, PacketSlab* slab,
 	neighbour->data = data;
 	neighbour->data_size = data_size;
 	neighbour->slab = slab;
-	neighbour->perplexity = 0.f;
+	neighbour->perplexity = 0;
 	packet_slab_undo_stack_new(&neighbour->undo_stack);
 }
 
