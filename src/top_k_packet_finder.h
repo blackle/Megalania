@@ -10,6 +10,6 @@ TopKPacketFinder* top_k_packet_finder_new(size_t size, const PacketEnumerator* p
 void top_k_packet_finder_free(TopKPacketFinder* finder);
 
 size_t top_k_packet_finder_count(const TopKPacketFinder* finder);
-void top_k_packet_finder_find(TopKPacketFinder* finder, const LZMAState* lzma_state);
+void top_k_packet_finder_find(TopKPacketFinder* finder, const LZMAState* lzma_state, LZMAPacket* next_packets);
 
 bool top_k_packet_finder_pop(TopKPacketFinder* finder, LZMAPacket* packet);

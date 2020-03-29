@@ -12,6 +12,7 @@ typedef struct {
 struct TopKPacketFinder_struct {
 	size_t size;
 	TopKEntry* entries;
+	LZMAPacket* next_packets;
 	MaxHeap* heap;
 	const PacketEnumerator* packet_enumerator;
 };
@@ -91,18 +92,28 @@ static void top_k_packet_finder_callback(void* user_data, const LZMAState* state
 {
 	TopKPacketFinder* finder = (TopKPacketFinder*) user_data;
 
+	if (lzma_packet_cmp(&packet, &finder->next_packets[state->position])) {
+		return;
+	}
+
 	LZMAState new_state = *state;
 	EncoderInterface enc;
 	uint64_t perplexity = 0;
+	size_t start_position = new_state.position;
 	perplexity_encoder_new(&enc, &perplexity);
 	lzma_encode_packet(&new_state, &enc, packet);
+	while (new_state.position < new_state.data_size && rand() % 4 == 0) {
+		lzma_encode_packet(&new_state, &enc, finder->next_packets[new_state.position]);
+	}
 
-	TopKEntry entry = { .packet = packet, .cost = perplexity / packet.len };
+	size_t length = new_state.position - start_position;
+	TopKEntry entry = { .packet = packet, .cost = perplexity / length };
 	top_k_entry_finder_insert(finder, entry);
 }
 
-void top_k_packet_finder_find(TopKPacketFinder* finder, const LZMAState* lzma_state)
+void top_k_packet_finder_find(TopKPacketFinder* finder, const LZMAState* lzma_state, LZMAPacket* next_packets)
 {
+	finder->next_packets = next_packets;
 	max_heap_clear(finder->heap);
 	packet_enumerator_for_each(finder->packet_enumerator, lzma_state, top_k_packet_finder_callback, finder);
 }

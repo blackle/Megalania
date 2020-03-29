@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
 
 #define INVALID 0
 #define LITERAL 1
@@ -14,6 +15,7 @@ typedef struct {
 	uint16_t len;
 } LZMAPacket;
 
+bool lzma_packet_cmp(const LZMAPacket* a, const LZMAPacket* b);
 LZMAPacket literal_packet();
 LZMAPacket match_packet(unsigned dist, unsigned len);
 LZMAPacket short_rep_packet();

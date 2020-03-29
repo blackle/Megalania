@@ -1,5 +1,10 @@
 #include "lzma_packet.h"
 
+bool lzma_packet_cmp(const LZMAPacket* a, const LZMAPacket* b)
+{
+	return a->type == b->type && a->len == b->len && a->dist == b->dist;
+}
+
 LZMAPacket literal_packet()
 {
 	LZMAPacket packet = {

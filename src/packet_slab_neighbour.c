@@ -38,16 +38,21 @@ static void save_packet_at_position(PacketSlabNeighbour* neighbour, LZMAPacket p
 	packet_slab_undo_stack_insert(&neighbour->undo_stack, undo);
 }
 
-#define TOP_PACKET_CHANCE 2
-static void pick_random_next_packet_from_top_k(const LZMAState* lzma_state, TopKPacketFinder* packet_finder, LZMAPacket* packets)
+static bool pick_random_next_packet_from_top_k(const LZMAState* lzma_state, TopKPacketFinder* packet_finder, LZMAPacket* packets, bool best)
 {
-	top_k_packet_finder_find(packet_finder, lzma_state);
 	LZMAPacket* next_packet = &packets[lzma_state->position];
+	top_k_packet_finder_find(packet_finder, lzma_state, packets);
+	size_t count = top_k_packet_finder_count(packet_finder);
+	if (count == 0) {
+		return false;
+	}
+	size_t choice = rand() % count;
 	while (top_k_packet_finder_pop(packet_finder, next_packet)) {
-		if (rand() % TOP_PACKET_CHANCE > 0) {
-			return;
+		if (choice-- == 0 || best) {
+			return true;
 		}
 	}
+	return true;
 }
 
 static bool validate_long_rep_packet(const LZMAState* lzma_state, LZMAPacket packet)
@@ -58,19 +63,20 @@ static bool validate_long_rep_packet(const LZMAState* lzma_state, LZMAPacket pac
 	return memcmp(rep_start, current, packet.len) == 0;
 }
 
-static bool compare_packets(const LZMAPacket* a, const LZMAPacket* b)
-{
-	return a->type == b->type && a->len == b->len && a->dist == b->dist;
-}
-
 static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* lzma_state, EncoderInterface* enc, TopKPacketFinder* packet_finder, LZMAPacket* packets)
 {
+	size_t count = 0;
 	while (lzma_state->position < lzma_state->data_size) {
+		count++;
 		LZMAPacket* packet = &packets[lzma_state->position];
 		LZMAPacket old_packet = *packet;
 
-		if (packet->type == SHORT_REP) {
-			if (lzma_state->data[lzma_state->position] != lzma_state->data[lzma_state->position - lzma_state->dists[0] - 1]) {
+		if (packet->type == SHORT_REP || packet->type == LITERAL) {
+			if (lzma_state->data[lzma_state->position] == lzma_state->data[lzma_state->position - lzma_state->dists[0] - 1]) {
+				if (count < 4) {
+					*packet = short_rep_packet();
+				}
+			} else {
 				*packet = literal_packet();
 			}
 		}
@@ -81,11 +87,12 @@ static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* 
 				dist_index++;
 			}
 			if (!validate_long_rep_packet(lzma_state, *packet)) {
-				pick_random_next_packet_from_top_k(lzma_state, packet_finder, packets);
+				//we don't have to worry about not having a second packet here because there will always be the literal packet
+				pick_random_next_packet_from_top_k(lzma_state, packet_finder, packets, true);
 			}
 		}
 
-		if (!compare_packets(&old_packet, packet)) {
+		if (!lzma_packet_cmp(&old_packet, packet)) {
 			save_packet_at_position(neighbour, old_packet, lzma_state->position);
 		}
 
@@ -93,7 +100,7 @@ static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* 
 	}
 }
 
-void packet_slab_neighbour_generate(PacketSlabNeighbour* neighbour, TopKPacketFinder* packet_finder)
+bool packet_slab_neighbour_generate(PacketSlabNeighbour* neighbour, TopKPacketFinder* packet_finder)
 {
 	LZMAPacket* packets = packet_slab_packets(neighbour->slab);
 
@@ -108,10 +115,13 @@ void packet_slab_neighbour_generate(PacketSlabNeighbour* neighbour, TopKPacketFi
 	encode_to_packet_number(&lzma_state, &enc, packets, mutation_target);
 
 	save_packet_at_position(neighbour, packets[lzma_state.position], lzma_state.position);
-	pick_random_next_packet_from_top_k(&lzma_state, packet_finder, packets);
+	if (!pick_random_next_packet_from_top_k(&lzma_state, packet_finder, packets, false)) {
+		return false;
+	}
 	lzma_encode_packet(&lzma_state, &enc, packets[lzma_state.position]);
 
 	repair_remaining_packets(neighbour, &lzma_state, &enc, packet_finder, packets);
+	return true;
 }
 
 void packet_slab_neighbour_undo(PacketSlabNeighbour* neighbour)

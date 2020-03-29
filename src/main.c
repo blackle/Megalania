@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <math.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -20,6 +21,7 @@
 
 //todo: write tests!!!
 //todo: add like, docstrings or something to explain what each structure does/what each function does
+//todo: inform user how much memory is expected to be used
 
 int main(int argc, char** argv) {
 	if (argc != 2) {
@@ -38,27 +40,42 @@ int main(int argc, char** argv) {
 	}
 
 	PacketEnumerator* packet_enumerator = packet_enumerator_new(file_data, file_size);
-	TopKPacketFinder* packet_finder = top_k_packet_finder_new(5, packet_enumerator);
+	TopKPacketFinder* packet_finder = top_k_packet_finder_new(10, packet_enumerator);
 	PacketSlab* packet_slab = packet_slab_new(file_size);
+	PacketSlab* packet_slab_best = packet_slab_new(file_size);
 	LZMAPacket* packets = packet_slab_packets(packet_slab);
+	LZMAPacket* bestest_packets = packet_slab_packets(packet_slab_best);
 
-	PacketSlabNeighbour neighbour;
-	uint64_t best_perplexity = 0;
-	srand(147351);
-	int max_iters = 5000;
-	for (int i = 0; i < max_iters; i++) {
-		// fprintf(stderr, "generating...\n");
-		packet_slab_neighbour_new(&neighbour, packet_slab, file_data, file_size);
-		packet_slab_neighbour_generate(&neighbour, packet_finder);
+	srand(149351);
+	uint64_t bestest_perplexity = 0;
+	for (int epoch = 0; epoch < 32; epoch++) {
+		fprintf(stderr, "=== EPOCH: %d===\n", epoch);
+		memcpy(packets, bestest_packets, sizeof(LZMAPacket) * file_size);
+		PacketSlabNeighbour neighbour;
+		uint64_t best_perplexity = 0;
+		int max_iters = 100000;
+		for (int i = 0; i < max_iters; i++) {
+			packet_slab_neighbour_new(&neighbour, packet_slab, file_data, file_size);
+			bool success = packet_slab_neighbour_generate(&neighbour, packet_finder);
+			if (!success) {
+				continue;
+			}
 
-		if (best_perplexity == 0 || neighbour.perplexity < best_perplexity) {
-			best_perplexity = neighbour.perplexity;
-			fprintf(stderr, "new best perplexity: %f\tat: %.1f%%\n", best_perplexity/2048.f/8.f, ((float)i)/max_iters*100);
-		} else {
-			packet_slab_neighbour_undo(&neighbour);
+			//todo: do an actual temperature schedule...
+			if (best_perplexity == 0 || neighbour.perplexity < best_perplexity || rand() % (i*i+1) < sqrt(max_iters) / (epoch*epoch+1)) {
+				best_perplexity = neighbour.perplexity;
+				if (bestest_perplexity == 0 || best_perplexity < bestest_perplexity) {
+					bestest_perplexity = best_perplexity;
+					memcpy(bestest_packets, packets, sizeof(LZMAPacket) * file_size);
+				}
+				fprintf(stderr, "new best perplexity: %f\tat: %.1f%%\n", best_perplexity/2048.f/8.f, ((float)i)/max_iters*100);
+			} else {
+				//todo: double check that this actually undoes the neighbour generation
+				packet_slab_neighbour_undo(&neighbour);
+			}
+
+			packet_slab_neighbour_free(&neighbour);
 		}
-
-		packet_slab_neighbour_free(&neighbour);
 	}
 
 	top_k_packet_finder_free(packet_finder);
@@ -77,7 +94,7 @@ int main(int argc, char** argv) {
 	EncoderInterface enc;
 	range_encoder_new(&enc, 1);
 	while (state.position < state.data_size) {
-		lzma_encode_packet(&state, &enc, packets[state.position]);
+		lzma_encode_packet(&state, &enc, bestest_packets[state.position]);
 	}
 	range_encoder_free(&enc);
 
