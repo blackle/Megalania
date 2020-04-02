@@ -1,5 +1,6 @@
 #include "lzma_packet_encoder.h"
 #include "probability_model.h"
+#include <assert.h>
 
 typedef struct {
 	bool match;
@@ -41,7 +42,7 @@ static void lzma_encode_packet_header(LZMAState* lzma_state, EncoderInterface* e
 static void lzma_encode_length(LengthProbabilityModel* probs, EncoderInterface* enc, unsigned len)
 {
 	unsigned ctx_pos_bits = 0; //todo: position context bits currently unsupported
-	if (len < 2) return; //todo: error messaging/assert
+	assert(len >= 2);
 	len -= 2;
 
 	if (len < LOW_CODER_SYMBOLS) {
@@ -185,7 +186,7 @@ void lzma_encode_packet(LZMAState* lzma_state, EncoderInterface* enc, LZMAPacket
 			break;
 		case INVALID:
 		default:
-			//todo: assert or error messaging
+			assert(false);
 			break;
 	}
 	lzma_state_update_ctx_state(lzma_state, type);

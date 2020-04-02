@@ -52,9 +52,17 @@ typedef struct {
 	ContextStateProbabilityModel ctx_state;
 } LZMAProbabilityModel;
 
+
+typedef struct {
+	uint8_t lc;
+	uint8_t lp;
+	uint8_t pb;
+} LZMAProperties;
+
 typedef struct {
 	const uint8_t* data;
 	size_t data_size;
+	LZMAProperties properties;
 
 	uint8_t ctx_state;
 
@@ -63,7 +71,7 @@ typedef struct {
 	size_t position;
 } LZMAState;
 
-void lzma_state_init(LZMAState* lzma_state, const uint8_t* data, size_t data_size);
+void lzma_state_init(LZMAState* lzma_state, const uint8_t* data, size_t data_size, LZMAProperties properties);
 void lzma_state_update_ctx_state(LZMAState* lzma_state, unsigned packet_type);
 
 void lzma_state_push_distance(LZMAState* lzma_state, uint32_t dist);

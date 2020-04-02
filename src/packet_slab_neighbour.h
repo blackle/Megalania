@@ -5,15 +5,14 @@
 #include <stdbool.h>
 
 typedef struct {
-	const uint8_t* data;
-	size_t data_size;
+	LZMAState init_state;
 	PacketSlab* slab;
 
 	uint64_t perplexity;
 	PacketSlabUndoStack undo_stack;
 } PacketSlabNeighbour;
 
-void packet_slab_neighbour_new(PacketSlabNeighbour* neighbour, PacketSlab* slab, const uint8_t* data, size_t data_size);
+void packet_slab_neighbour_new(PacketSlabNeighbour* neighbour, PacketSlab* slab, LZMAState init_state);
 void packet_slab_neighbour_free(PacketSlabNeighbour* neighbour);
 
 bool packet_slab_neighbour_generate(PacketSlabNeighbour* neighbour, TopKPacketFinder* packet_finder);

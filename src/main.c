@@ -12,6 +12,7 @@
 #include "memory_mapper.h"
 #include "range_encoder.h"
 #include "lzma_state.h"
+#include "lzma_header_encoder.h"
 #include "lzma_packet_encoder.h"
 #include "packet_enumerator.h"
 #include "packet_slab.h"
@@ -40,6 +41,10 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
+	LZMAState init_state;
+	LZMAProperties properties = { .lc = 0, .lp = 0, .pb = 0 };
+	lzma_state_init(&init_state, file_data, file_size, properties);
+
 	PacketEnumerator* packet_enumerator = packet_enumerator_new(file_data, file_size);
 	TopKPacketFinder* packet_finder = top_k_packet_finder_new(20, packet_enumerator);
 	PacketSlab* packet_slab = packet_slab_new(file_size);
@@ -54,7 +59,7 @@ int main(int argc, char** argv) {
 	PacketSlabNeighbour neighbour;
 	const int max_iters = 60000;
 	for (int i = 0; i < max_iters; i++) {
-		packet_slab_neighbour_new(&neighbour, packet_slab, file_data, file_size);
+		packet_slab_neighbour_new(&neighbour, packet_slab, init_state);
 		bool success = packet_slab_neighbour_generate(&neighbour, packet_finder);
 		if (!success) {
 			continue;
@@ -86,15 +91,15 @@ int main(int argc, char** argv) {
 	packet_enumerator_free(packet_enumerator);
 
 	//todo: encapsulate in some kind of header serializer, write the data properly
-	char props = 0;
-	uint32_t dictsize = 0x400000; //todo: peg this to file size
-	uint64_t outsize = file_size;
-	write(1, &props, 1);
-	write(1, &dictsize, sizeof(uint32_t));
-	write(1, &outsize, sizeof(uint64_t));
+	// char props = 0;
+	// uint32_t dictsize = 0x400000; //todo: peg this to file size
+	// uint64_t outsize = file_size;
+	// write(1, &props, 1);
+	// write(1, &dictsize, sizeof(uint32_t));
+	// write(1, &outsize, sizeof(uint64_t));
 
-	LZMAState state;
-	lzma_state_init(&state, file_data, file_size);
+	LZMAState state = init_state;
+	lzma_encode_header(&state, 1);
 	EncoderInterface enc;
 	range_encoder_new(&enc, 1);
 	while (state.position < state.data_size) {

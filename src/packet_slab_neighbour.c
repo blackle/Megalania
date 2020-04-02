@@ -6,10 +6,9 @@
 #include <string.h>
 #include <assert.h>
 
-void packet_slab_neighbour_new(PacketSlabNeighbour* neighbour, PacketSlab* slab, const uint8_t* data, size_t data_size)
+void packet_slab_neighbour_new(PacketSlabNeighbour* neighbour, PacketSlab* slab, LZMAState init_state)
 {
-	neighbour->data = data;
-	neighbour->data_size = data_size;
+	neighbour->init_state = init_state;
 	neighbour->slab = slab;
 	neighbour->perplexity = 0;
 	packet_slab_undo_stack_new(&neighbour->undo_stack);
@@ -143,8 +142,7 @@ bool packet_slab_neighbour_generate(PacketSlabNeighbour* neighbour, TopKPacketFi
 {
 	LZMAPacket* packets = packet_slab_packets(neighbour->slab);
 
-	LZMAState lzma_state;
-	lzma_state_init(&lzma_state, neighbour->data, neighbour->data_size);
+	LZMAState lzma_state = neighbour->init_state;
 	EncoderInterface enc;
 	perplexity_encoder_new(&enc, &neighbour->perplexity);
 

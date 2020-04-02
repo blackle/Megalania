@@ -3,6 +3,7 @@
 #include "lzma_packet_encoder.h"
 #include "max_heap.h"
 #include <stdlib.h>
+#include <assert.h>
 
 typedef struct {
 	LZMAPacket packet;
@@ -27,7 +28,8 @@ static int sign(float x)
 static int top_k_entry_comparator(void* user_data, unsigned a, unsigned b)
 {
 	TopKPacketFinder* finder = (TopKPacketFinder*) user_data;
-	//todo: assert
+	assert(a < finder->size);
+	assert(b < finder->size);
 	TopKEntry* entry_a = &finder->entries[a];
 	TopKEntry* entry_b = &finder->entries[b];
 	return sign(entry_a->cost - entry_b->cost);
@@ -81,7 +83,9 @@ static void top_k_entry_finder_insert(TopKPacketFinder* finder, TopKEntry entry)
 
 	//otherwise, we must compare with the maximum and replace if needed
 	unsigned maximum = 0;
-	max_heap_maximum(finder->heap, &maximum); //todo: assert? ... why?? oh right, so it's in bounds
+	bool had_max = max_heap_maximum(finder->heap, &maximum);
+	assert(had_max);
+	assert(maximum < finder->size);
 	if (entry.cost <= finder->entries[maximum].cost) {
 		finder->entries[maximum] = entry;
 		max_heap_update_maximum(finder->heap);

@@ -1,6 +1,7 @@
-#include <string.h>
 #include "lzma_state.h"
 #include "lzma_packet.h"
+#include <string.h>
+#include <assert.h>
 
 static void lzma_state_init_probs(LZMAProbabilityModel* probs)
 {
@@ -12,10 +13,11 @@ static void lzma_state_init_probs(LZMAProbabilityModel* probs)
 	}
 }
 
-void lzma_state_init(LZMAState* lzma_state, const uint8_t* data, size_t data_size)
+void lzma_state_init(LZMAState* lzma_state, const uint8_t* data, size_t data_size, LZMAProperties properties)
 {
 	lzma_state->data = data;
 	lzma_state->data_size = data_size;
+	lzma_state->properties = properties;
 
 	lzma_state->ctx_state = 0;
 	memset(lzma_state->dists, 0, sizeof(lzma_state->dists));
@@ -48,7 +50,7 @@ void lzma_state_update_ctx_state(LZMAState* lzma_state, unsigned packet_type)
 			break;
 		case INVALID:
 		default:
-			//todo: assert or error messaging
+			assert(false);
 			break;
 	}
 	lzma_state->ctx_state = ctx_state;
@@ -64,7 +66,7 @@ void lzma_state_push_distance(LZMAState* lzma_state, uint32_t dist)
 
 void lzma_state_promote_distance_at(LZMAState* lzma_state, unsigned dist_index)
 {
-	//todo: assert dist_index < 4
+	assert(dist_index < 4);
 	uint32_t dist = lzma_state->dists[dist_index];
 	if (dist_index > 2) {
 		lzma_state->dists[3] = lzma_state->dists[2];
