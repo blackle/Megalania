@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "memory_mapper.h"
+#include "file_output.h"
 #include "range_encoder.h"
 #include "lzma_state.h"
 #include "lzma_header_encoder.h"
@@ -22,7 +23,6 @@
 #define GIGABYTE 1073741824
 
 //todo: write tests!!!
-//todo: add like, docstrings or something to explain what each structure does/what each function does
 //todo: inform user how much memory is expected to be used
 
 int main(int argc, char** argv) {
@@ -90,10 +90,12 @@ int main(int argc, char** argv) {
 	top_k_packet_finder_free(packet_finder);
 	packet_enumerator_free(packet_enumerator);
 
+	OutputInterface output;
+	file_output_new(&output, stdout);
 	LZMAState state = init_state;
-	lzma_encode_header(&state, 1);
+	lzma_encode_header(&state, &output);
 	EncoderInterface enc;
-	range_encoder_new(&enc, 1);
+	range_encoder_new(&enc, &output);
 	while (state.position < state.data_size) {
 		lzma_encode_packet(&state, &enc, bestest_packets[state.position]);
 	}

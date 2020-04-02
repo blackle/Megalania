@@ -9,7 +9,7 @@
 #define TOP_MASK ~((1 << 24) - 1)
 
 typedef struct {
-	int fd;
+	OutputInterface* output;
 	uint64_t low;
 	uint32_t range;
 	uint8_t cache;
@@ -19,12 +19,13 @@ typedef struct {
 static void range_encoder_shift_low(EncoderInterface* enc)
 {
 	RangeEncoderData* data = (RangeEncoderData*)enc->private_data;
+	OutputInterface* output = data->output;
+
 	if ((uint32_t)data->low < (uint32_t)0xFF000000 || (uint32_t)(data->low >> 32) != 0) {
 		uint8_t temp = data->cache;
 		do {
 			uint8_t out_byte = (uint8_t)(temp + (uint8_t)(data->low >> 32));
-			//todo: substitute fd with generic OutputInterface ?
-			if (write(data->fd, &out_byte, 1) != 1) {
+			if (!(*output->write)(output, &out_byte, 1)) {
 				fprintf(stderr, "could not write: %02x\n", out_byte);
 			}
 			temp = 0xFF;
@@ -78,10 +79,10 @@ static void range_encoder_encode_direct_bits(EncoderInterface* enc, unsigned bit
 	} while (--num_bits);
 }
 
-void range_encoder_new(EncoderInterface* enc, int fd)
+void range_encoder_new(EncoderInterface* enc, OutputInterface* output)
 {
 	RangeEncoderData* data = malloc(sizeof(RangeEncoderData));
-	data->fd = fd;
+	data->output = output;
 	data->low = 0;
 	data->range = 0xFFFFFFFF;
 	data->cache = 0;
