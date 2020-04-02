@@ -38,6 +38,10 @@ static void save_packet_at_position(PacketSlabNeighbour* neighbour, LZMAPacket p
 	packet_slab_undo_stack_insert(&neighbour->undo_stack, undo);
 }
 
+size_t max(size_t a, size_t b) {
+    return a > b ? a : b;
+}
+
 static bool pick_random_next_packet_from_top_k(const LZMAState* lzma_state, TopKPacketFinder* packet_finder, LZMAPacket* packets, bool best)
 {
 	LZMAPacket* next_packet = &packets[lzma_state->position];
@@ -46,7 +50,7 @@ static bool pick_random_next_packet_from_top_k(const LZMAState* lzma_state, TopK
 	if (count == 0) {
 		return false;
 	}
-	size_t choice = rand() % count;
+	size_t choice = max(rand() % count, rand() % count);
 	while (top_k_packet_finder_pop(packet_finder, next_packet)) {
 		if (choice-- == 0 || best) {
 			return true;
@@ -88,7 +92,7 @@ static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* 
 			}
 			if (!validate_long_rep_packet(lzma_state, *packet)) {
 				//we don't have to worry about not having a second packet here because there will always be the literal packet
-				pick_random_next_packet_from_top_k(lzma_state, packet_finder, packets, true);
+				pick_random_next_packet_from_top_k(lzma_state, packet_finder, packets, rand() % 4 > 0);
 			}
 		}
 
@@ -98,6 +102,41 @@ static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* 
 
 		lzma_encode_packet(lzma_state, enc, *packet);
 	}
+}
+
+static bool mutate_next_packet(PacketSlabNeighbour* neighbour, const LZMAState* lzma_state, TopKPacketFinder* packet_finder, LZMAPacket* packets)
+{
+	//try to randomly grow/shrink the next match packet
+	LZMAPacket* first_packet = &packets[lzma_state->position];
+	if (lzma_state->position + 1 < lzma_state->data_size && rand() % 4 == 0) {
+		LZMAPacket* second_packet = &packets[lzma_state->position + 1];
+		if ((first_packet->type == LONG_REP || first_packet->type == MATCH) && first_packet->len > 2) {
+			save_packet_at_position(neighbour, *first_packet, lzma_state->position);
+			save_packet_at_position(neighbour, *second_packet, lzma_state->position + 1);
+			*second_packet = *first_packet;
+			second_packet->len--;
+			*first_packet = literal_packet();
+			return true;
+		} else if (first_packet->type == LITERAL || first_packet->type == SHORT_REP) {
+			if (second_packet->type == MATCH || second_packet->type == LONG_REP) {
+				size_t rep_start = lzma_state->position - second_packet->dist;
+				if (second_packet->type == LONG_REP) {
+					rep_start = lzma_state->position - lzma_state->dists[second_packet->dist];
+				}
+				if (second_packet->len < 273 && rep_start > 0 && lzma_state->data[lzma_state->position] == lzma_state->data[rep_start-1]) {
+					save_packet_at_position(neighbour, *first_packet, lzma_state->position);
+					*first_packet = *second_packet;
+					first_packet->len++;
+					return true;
+				}
+			}
+		}
+	}
+	save_packet_at_position(neighbour, packets[lzma_state->position], lzma_state->position);
+	if (pick_random_next_packet_from_top_k(lzma_state, packet_finder, packets, false)) {
+		return true;
+	}
+	return false;
 }
 
 bool packet_slab_neighbour_generate(PacketSlabNeighbour* neighbour, TopKPacketFinder* packet_finder)
@@ -113,9 +152,7 @@ bool packet_slab_neighbour_generate(PacketSlabNeighbour* neighbour, TopKPacketFi
 	size_t mutation_target = rand() % packet_count;
 
 	encode_to_packet_number(&lzma_state, &enc, packets, mutation_target);
-
-	save_packet_at_position(neighbour, packets[lzma_state.position], lzma_state.position);
-	if (!pick_random_next_packet_from_top_k(&lzma_state, packet_finder, packets, false)) {
+	if (!mutate_next_packet(neighbour, &lzma_state, packet_finder, packets)) {
 		return false;
 	}
 	lzma_encode_packet(&lzma_state, &enc, packets[lzma_state.position]);

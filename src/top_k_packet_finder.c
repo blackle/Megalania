@@ -102,8 +102,10 @@ static void top_k_packet_finder_callback(void* user_data, const LZMAState* state
 	size_t start_position = new_state.position;
 	perplexity_encoder_new(&enc, &perplexity);
 	lzma_encode_packet(&new_state, &enc, packet);
-	while (new_state.position < new_state.data_size && rand() % 4 == 0) {
+	size_t count = 0;
+	while (new_state.position < new_state.data_size && count < 1) {
 		lzma_encode_packet(&new_state, &enc, finder->next_packets[new_state.position]);
+		count++;
 	}
 
 	size_t length = new_state.position - start_position;
