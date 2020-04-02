@@ -4,6 +4,8 @@
 #include "top_k_packet_finder.h"
 #include <stdbool.h>
 
+//This class makes a small modification to the PacketSlab. In the language of simulated annealing, when we make a small modifcation to the system we want to optimize, we say that we have "transitioned to a neighbour state". If this neighbour is not acceptable, we can undo it. This class is optimized to not make any heap allocations
+
 typedef struct {
 	LZMAState init_state;
 	PacketSlab* slab;

@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+//This class allows for fast lookup of all previous substrings of some data at a certain point. This is kinda hard to explain, but there is are tests in the tests/ folder for this class, which should explain what exactly it's giving us.
+
 typedef struct SubstringEnumerator_struct SubstringEnumerator;
 typedef void (*SubstringEnumeratorCallback)(void* user_data, size_t offset, size_t length);
 

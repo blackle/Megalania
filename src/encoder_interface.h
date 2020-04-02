@@ -2,6 +2,8 @@
 #include "probability.h"
 #include <stdbool.h>
 
+//The encoder interface allows us to abstract out the encoding of bits with probabilities.
+
 typedef struct EncoderInterface_struct EncoderInterface;
 
 struct EncoderInterface_struct {

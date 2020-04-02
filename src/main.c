@@ -90,14 +90,6 @@ int main(int argc, char** argv) {
 	top_k_packet_finder_free(packet_finder);
 	packet_enumerator_free(packet_enumerator);
 
-	//todo: encapsulate in some kind of header serializer, write the data properly
-	// char props = 0;
-	// uint32_t dictsize = 0x400000; //todo: peg this to file size
-	// uint64_t outsize = file_size;
-	// write(1, &props, 1);
-	// write(1, &dictsize, sizeof(uint32_t));
-	// write(1, &outsize, sizeof(uint64_t));
-
 	LZMAState state = init_state;
 	lzma_encode_header(&state, 1);
 	EncoderInterface enc;

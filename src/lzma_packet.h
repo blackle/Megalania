@@ -8,7 +8,8 @@
 #define SHORT_REP 3
 #define LONG_REP 4
 
-//this struct is optimized for size because we need to store BEAM_SIZE * FILE_SIZE many of them
+//This struct defines an LZMA packet
+
 typedef struct {
 	uint8_t type;
 	uint32_t dist;

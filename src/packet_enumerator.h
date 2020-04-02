@@ -2,6 +2,8 @@
 #include "lzma_state.h"
 #include "lzma_packet.h"
 
+//This class enumerates all possible next packets given an LZMAState. It calls-back with each packet.
+
 typedef struct PacketEnumerator_struct PacketEnumerator;
 typedef void (*PacketEnumeratorCallback)(void* user_data, const LZMAState* state, LZMAPacket packet);
 

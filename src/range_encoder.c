@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
+//Most of this code is lifted directly from example LZMA encoders. I haven't yet figured out how exactly it works practically, I just know the theory.
+
 #define TOP_VALUE (1 << 24)
 #define TOP_MASK ~((1 << 24) - 1)
 

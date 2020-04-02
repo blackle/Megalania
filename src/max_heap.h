@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+//This is a max heap implementation of a fixed size that allows one to pass in a custom comparison function.
+
 typedef struct MaxHeap_struct MaxHeap;
 typedef int (*MaxHeapComparator)(void* comparator_data, unsigned a, unsigned b);
 

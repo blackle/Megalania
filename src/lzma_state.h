@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include "probability.h"
 
+//the LZMA state struct defines the LZMA compression algorithm in progress. It has a pointer to the data it is compressing, the size of that data, and the LZMA 'properties'. These parameters are constant throughout the lifetime of the class. It also stores its position in the data, the current condition of the probability model, the lzma 'state', and the stack of most recent match distances. These parameters change as the LZMAState is used to compress data.
+
 #define NUM_POS_BITS_MAX 4
 #define LOW_CODER_BITS 3
 #define LOW_CODER_SYMBOLS (1 << LOW_CODER_BITS)
