@@ -46,31 +46,43 @@ int main(int argc, char** argv) {
 	lzma_state_init(&init_state, file_data, file_size, properties);
 
 	PacketEnumerator* packet_enumerator = packet_enumerator_new(file_data, file_size);
-	TopKPacketFinder* packet_finder = top_k_packet_finder_new(20, packet_enumerator);
+	TopKPacketFinder* packet_finder = top_k_packet_finder_new(10, packet_enumerator);
 	PacketSlab* packet_slab = packet_slab_new(file_size);
 	PacketSlab* packet_slab_best = packet_slab_new(file_size);
 	LZMAPacket* packets = packet_slab_packets(packet_slab);
 	LZMAPacket* bestest_packets = packet_slab_packets(packet_slab_best);
 
-	srand(18931);
+	// for (size_t i = 0; i < file_size; i++) {
+	// 	LZMAState demostate;
+	// 	lzma_state_init(&demostate, file_data, file_size, properties);
+	// 	demostate.position = i;
+	// 	top_k_packet_finder_find(packet_finder, &demostate, bestest_packets);
+	// 	while (top_k_packet_finder_pop(packet_finder, &bestest_packets[i]));
+	// 	if (i % 100 == 0) {
+	// 		fprintf(stderr, "precompute progress: %f\n", (float)i/file_size);
+	// 	}
+	// }
 
 	uint64_t current_perplexity = 0;
 	uint64_t best_perplexity = 0;
+
+	const int num_epochs = 10;
+	const int num_iters = 50000;
+	for (unsigned epoch = 0; epoch < num_epochs; epoch++) {
 	PacketSlabNeighbour neighbour;
-	const int max_iters = 60000;
-	for (int i = 0; i < max_iters; i++) {
+	memcpy(packets, bestest_packets, sizeof(LZMAPacket) * file_size);
+	current_perplexity = 0;
+	srand(147351);
+	for (int i = 0; i < num_iters; i++) {
 		packet_slab_neighbour_new(&neighbour, packet_slab, init_state);
 		bool success = packet_slab_neighbour_generate(&neighbour, packet_finder);
 		if (!success) {
+			i--;
 			continue;
 		}
 
-		float diff = ((int64_t)current_perplexity - (int64_t)neighbour.perplexity)/(float)neighbour.perplexity;
-		float time = ((float)i)/max_iters;
-		float temp = pow(1.f - time, 1.f) * 0.0001f;
-		float chance = (diff > 0) ? 1.0 : exp(diff / temp);
-		bool transition = rand() % INT_MAX < chance * INT_MAX;
-		if (current_perplexity == 0 || transition) {
+		bool transition = rand() % (i*i+1) < sqrt(num_iters) / (epoch*epoch+1);
+		if (current_perplexity == 0 || neighbour.perplexity < current_perplexity || transition) {
 			current_perplexity = neighbour.perplexity;
 			if (best_perplexity == 0 || current_perplexity < best_perplexity) {
 				best_perplexity = current_perplexity;
@@ -80,12 +92,13 @@ int main(int argc, char** argv) {
 			//todo: double check that this actually undoes the neighbour generation
 			packet_slab_neighbour_undo(&neighbour);
 		}
-		if (i % 50 == 0) {
-			fprintf(stderr, "current file size: %f\tat: %.1f%%\n", 18+current_perplexity/16384.f, ((float)i)/max_iters*100);
+		if (i % 100 == 0) {
+			fprintf(stderr, "current file size: %f\tepoch: %04d - %.1f%%\n", 18+current_perplexity/16384.f, epoch, ((float)i)/num_iters*100);
 		}
 
 		packet_slab_neighbour_free(&neighbour);
 	}
+}
 
 	top_k_packet_finder_free(packet_finder);
 	packet_enumerator_free(packet_enumerator);

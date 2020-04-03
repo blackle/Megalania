@@ -38,7 +38,19 @@ static void save_packet_at_position(PacketSlabNeighbour* neighbour, LZMAPacket p
 }
 
 size_t max(size_t a, size_t b) {
-    return a > b ? a : b;
+	return a > b ? a : b;
+}
+
+size_t min(size_t a, size_t b) {
+	return a < b ? a : b;
+}
+
+static size_t rand_max_dist(size_t count, size_t num) {
+	size_t rnd = rand() % count;
+	while (--num != 0) {
+		rnd = max(rnd, rand() % count);
+	}
+	return rnd;
 }
 
 static bool pick_random_next_packet_from_top_k(const LZMAState* lzma_state, TopKPacketFinder* packet_finder, LZMAPacket* packets, bool best)
@@ -49,9 +61,10 @@ static bool pick_random_next_packet_from_top_k(const LZMAState* lzma_state, TopK
 	if (count == 0) {
 		return false;
 	}
-	size_t choice = max(rand() % count, rand() % count);
+	size_t choice = rand_max_dist(count, 8);
+	if (rand() % 8 == 0 || best) choice = count-1;
 	while (top_k_packet_finder_pop(packet_finder, next_packet)) {
-		if (choice-- == 0 || best) {
+		if (choice-- == 0) {
 			return true;
 		}
 	}
@@ -91,7 +104,7 @@ static void repair_remaining_packets(PacketSlabNeighbour* neighbour, LZMAState* 
 			}
 			if (!validate_long_rep_packet(lzma_state, *packet)) {
 				//we don't have to worry about not having a second packet here because there will always be the literal packet
-				pick_random_next_packet_from_top_k(lzma_state, packet_finder, packets, rand() % 4 > 0);
+				pick_random_next_packet_from_top_k(lzma_state, packet_finder, packets, rand() % 4 == 0);
 			}
 		}
 
@@ -107,7 +120,7 @@ static bool mutate_next_packet(PacketSlabNeighbour* neighbour, const LZMAState* 
 {
 	//try to randomly grow/shrink the next match packet
 	LZMAPacket* first_packet = &packets[lzma_state->position];
-	if (lzma_state->position + 1 < lzma_state->data_size && rand() % 4 == 0) {
+	if (lzma_state->position + 1 < lzma_state->data_size && rand() % 2 == 0) {
 		LZMAPacket* second_packet = &packets[lzma_state->position + 1];
 		if ((first_packet->type == LONG_REP || first_packet->type == MATCH) && first_packet->len > 2) {
 			save_packet_at_position(neighbour, *first_packet, lzma_state->position);

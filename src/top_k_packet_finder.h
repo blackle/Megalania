@@ -12,6 +12,7 @@ TopKPacketFinder* top_k_packet_finder_new(size_t size, const PacketEnumerator* p
 void top_k_packet_finder_free(TopKPacketFinder* finder);
 
 size_t top_k_packet_finder_count(const TopKPacketFinder* finder);
+//todo: remove the next_packets thing because I think it only causes hardship.. or maybe we should abstract-out the cost function
 void top_k_packet_finder_find(TopKPacketFinder* finder, const LZMAState* lzma_state, LZMAPacket* next_packets);
 
 bool top_k_packet_finder_pop(TopKPacketFinder* finder, LZMAPacket* packet);
