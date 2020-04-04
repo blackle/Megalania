@@ -21,19 +21,21 @@ static void range_encoder_shift_low(EncoderInterface* enc)
 	RangeEncoderData* data = (RangeEncoderData*)enc->private_data;
 	OutputInterface* output = data->output;
 
-	if ((uint32_t)data->low < (uint32_t)0xFF000000 || (uint32_t)(data->low >> 32) != 0) {
+	uint32_t high_bytes = data->low >> 32;
+	uint32_t low_bytes = data->low & 0xFFFFFFFF;
+	if (low_bytes < 0xFF000000 || high_bytes != 0) {
 		uint8_t temp = data->cache;
 		do {
-			uint8_t out_byte = (uint8_t)(temp + (uint8_t)(data->low >> 32));
+			uint8_t out_byte = temp + (high_bytes & 0xFF);
 			if (!(*output->write)(output, &out_byte, 1)) {
 				fprintf(stderr, "could not write: %02x\n", out_byte);
 			}
 			temp = 0xFF;
 		} while (--data->cache_size != 0);
-		data->cache = (uint8_t)((uint32_t)data->low >> 24);
+		data->cache = (data->low >> 24) & 0xFF;
 	}
 	data->cache_size++;
-	data->low = (uint32_t)data->low << 8;
+	data->low = low_bytes << 8;
 }
 
 static void range_encoder_flush_data(EncoderInterface* enc)

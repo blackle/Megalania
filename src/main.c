@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 	lzma_state_init(&init_state, file_data, file_size, properties);
 
 	PacketEnumerator* packet_enumerator = packet_enumerator_new(file_data, file_size);
-	TopKPacketFinder* packet_finder = top_k_packet_finder_new(10, packet_enumerator);
+	TopKPacketFinder* packet_finder = top_k_packet_finder_new(20, packet_enumerator);
 	PacketSlab* packet_slab = packet_slab_new(file_size);
 	PacketSlab* packet_slab_best = packet_slab_new(file_size);
 	LZMAPacket* packets = packet_slab_packets(packet_slab);
@@ -66,13 +66,13 @@ int main(int argc, char** argv) {
 	uint64_t current_perplexity = 0;
 	uint64_t best_perplexity = 0;
 
-	const int num_epochs = 10;
-	const int num_iters = 50000;
+	const int num_epochs = 32;
+	const int num_iters = 100000;
+	srand(1673551);
 	for (unsigned epoch = 0; epoch < num_epochs; epoch++) {
 	PacketSlabNeighbour neighbour;
 	memcpy(packets, bestest_packets, sizeof(LZMAPacket) * file_size);
 	current_perplexity = 0;
-	srand(147351);
 	for (int i = 0; i < num_iters; i++) {
 		packet_slab_neighbour_new(&neighbour, packet_slab, init_state);
 		bool success = packet_slab_neighbour_generate(&neighbour, packet_finder);
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
 			continue;
 		}
 
-		bool transition = rand() % (i*i+1) < sqrt(num_iters) / (epoch*epoch+1);
+		bool transition = rand() % (i*i+1) < sqrt(num_iters) / (epoch+1);
 		if (current_perplexity == 0 || neighbour.perplexity < current_perplexity || transition) {
 			current_perplexity = neighbour.perplexity;
 			if (best_perplexity == 0 || current_perplexity < best_perplexity) {
