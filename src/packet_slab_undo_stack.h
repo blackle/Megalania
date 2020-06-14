@@ -12,7 +12,7 @@ typedef struct {
 
 typedef struct PacketSlabUndoHeap_struct PacketSlabUndoHeap;
 
-#define UNDO_STACK_SIZE 8
+#define UNDO_STACK_SIZE 16
 typedef struct {
 	size_t total_count;
 	size_t count;

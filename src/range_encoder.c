@@ -5,8 +5,7 @@
 
 //Most of this code is lifted directly from example LZMA encoders. I haven't yet figured out how exactly it works practically, I just know the theory.
 
-#define TOP_VALUE (1 << 24)
-#define TOP_MASK ~((1 << 24) - 1)
+#define TOP_MASK 0xFF000000
 
 typedef struct {
 	OutputInterface* output;
@@ -23,7 +22,7 @@ static void range_encoder_shift_low(EncoderInterface* enc)
 
 	uint32_t high_bytes = data->low >> 32;
 	uint32_t low_bytes = data->low & 0xFFFFFFFF;
-	if (low_bytes < 0xFF000000 || high_bytes != 0) {
+	if (low_bytes < TOP_MASK || high_bytes != 0) {
 		uint8_t temp = data->cache;
 		do {
 			uint8_t out_byte = temp + (high_bytes & 0xFF);
@@ -53,7 +52,7 @@ static void range_encoder_encode_bit(EncoderInterface* enc, bool bit, Prob prob)
 
 	uint32_t new_bound = (data->range >> NUM_BIT_MODEL_TOTAL_BITS) * prob;
 	if (bit) {
-		data->low += (new_bound & 0xFFFFFFFFL);
+		data->low += new_bound;
 		data->range -= new_bound;
 	} else {
 		data->range = new_bound;
