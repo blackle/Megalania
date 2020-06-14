@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
 	uint64_t best_perplexity = 0;
 
 	const int num_epochs = 200;
-	const int num_iters = 50000;
+	const int num_iters = file_size;
 	srand(1673551);
 	for (unsigned step = 0; step < 3; step++) {
 	for (unsigned epoch = 0; epoch < num_epochs; epoch++) {
